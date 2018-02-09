@@ -2,12 +2,9 @@ syntax = "proto3";
 
 package api;
 
-service SearchConfig{
-    rpc Request(ConfigInfo) returns (ConfigInfo);
-}
-
-service GetConfig{
-    rpc Request(ConfigInfo) returns (Config);
+service ConfigService{
+    rpc SearchConfig(ConfigInfo) returns (ConfigInfo);
+    rpc GetConfig(ConfigInfo) returns (Config);
 }
 
 message ConfigInfo{

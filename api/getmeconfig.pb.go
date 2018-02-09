@@ -8,7 +8,7 @@ It is generated from these files:
 	getmeconfig.proto
 
 It has these top-level messages:
-	ConfigId
+	ConfigInfo
 	Config
 */
 package api
@@ -33,18 +33,26 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type ConfigId struct {
-	ConfigId string `protobuf:"bytes,1,opt,name=ConfigId" json:"ConfigId,omitempty"`
+type ConfigInfo struct {
+	ConfigId   string `protobuf:"bytes,1,opt,name=ConfigId" json:"ConfigId,omitempty"`
+	ConfigPath string `protobuf:"bytes,2,opt,name=ConfigPath" json:"ConfigPath,omitempty"`
 }
 
-func (m *ConfigId) Reset()                    { *m = ConfigId{} }
-func (m *ConfigId) String() string            { return proto.CompactTextString(m) }
-func (*ConfigId) ProtoMessage()               {}
-func (*ConfigId) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (m *ConfigInfo) Reset()                    { *m = ConfigInfo{} }
+func (m *ConfigInfo) String() string            { return proto.CompactTextString(m) }
+func (*ConfigInfo) ProtoMessage()               {}
+func (*ConfigInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
-func (m *ConfigId) GetConfigId() string {
+func (m *ConfigInfo) GetConfigId() string {
 	if m != nil {
 		return m.ConfigId
+	}
+	return ""
+}
+
+func (m *ConfigInfo) GetConfigPath() string {
+	if m != nil {
+		return m.ConfigPath
 	}
 	return ""
 }
@@ -66,7 +74,7 @@ func (m *Config) GetConfig() []byte {
 }
 
 func init() {
-	proto.RegisterType((*ConfigId)(nil), "api.ConfigId")
+	proto.RegisterType((*ConfigInfo)(nil), "api.ConfigInfo")
 	proto.RegisterType((*Config)(nil), "api.Config")
 }
 
@@ -78,64 +86,97 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for GetConfig service
+// Client API for ConfigService service
 
-type GetConfigClient interface {
-	Request(ctx context.Context, in *ConfigId, opts ...grpc.CallOption) (*Config, error)
+type ConfigServiceClient interface {
+	SearchConfig(ctx context.Context, in *ConfigInfo, opts ...grpc.CallOption) (*ConfigInfo, error)
+	GetConfig(ctx context.Context, in *ConfigInfo, opts ...grpc.CallOption) (*Config, error)
 }
 
-type getConfigClient struct {
+type configServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewGetConfigClient(cc *grpc.ClientConn) GetConfigClient {
-	return &getConfigClient{cc}
+func NewConfigServiceClient(cc *grpc.ClientConn) ConfigServiceClient {
+	return &configServiceClient{cc}
 }
 
-func (c *getConfigClient) Request(ctx context.Context, in *ConfigId, opts ...grpc.CallOption) (*Config, error) {
-	out := new(Config)
-	err := grpc.Invoke(ctx, "/api.GetConfig/Request", in, out, c.cc, opts...)
+func (c *configServiceClient) SearchConfig(ctx context.Context, in *ConfigInfo, opts ...grpc.CallOption) (*ConfigInfo, error) {
+	out := new(ConfigInfo)
+	err := grpc.Invoke(ctx, "/api.ConfigService/SearchConfig", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for GetConfig service
-
-type GetConfigServer interface {
-	Request(context.Context, *ConfigId) (*Config, error)
+func (c *configServiceClient) GetConfig(ctx context.Context, in *ConfigInfo, opts ...grpc.CallOption) (*Config, error) {
+	out := new(Config)
+	err := grpc.Invoke(ctx, "/api.ConfigService/GetConfig", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func RegisterGetConfigServer(s *grpc.Server, srv GetConfigServer) {
-	s.RegisterService(&_GetConfig_serviceDesc, srv)
+// Server API for ConfigService service
+
+type ConfigServiceServer interface {
+	SearchConfig(context.Context, *ConfigInfo) (*ConfigInfo, error)
+	GetConfig(context.Context, *ConfigInfo) (*Config, error)
 }
 
-func _GetConfig_Request_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigId)
+func RegisterConfigServiceServer(s *grpc.Server, srv ConfigServiceServer) {
+	s.RegisterService(&_ConfigService_serviceDesc, srv)
+}
+
+func _ConfigService_SearchConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GetConfigServer).Request(ctx, in)
+		return srv.(ConfigServiceServer).SearchConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.GetConfig/Request",
+		FullMethod: "/api.ConfigService/SearchConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GetConfigServer).Request(ctx, req.(*ConfigId))
+		return srv.(ConfigServiceServer).SearchConfig(ctx, req.(*ConfigInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _GetConfig_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.GetConfig",
-	HandlerType: (*GetConfigServer)(nil),
+func _ConfigService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).GetConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.ConfigService/GetConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).GetConfig(ctx, req.(*ConfigInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _ConfigService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.ConfigService",
+	HandlerType: (*ConfigServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Request",
-			Handler:    _GetConfig_Request_Handler,
+			MethodName: "SearchConfig",
+			Handler:    _ConfigService_SearchConfig_Handler,
+		},
+		{
+			MethodName: "GetConfig",
+			Handler:    _ConfigService_GetConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -145,13 +186,15 @@ var _GetConfig_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("getmeconfig.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 122 bytes of a gzipped FileDescriptorProto
+	// 157 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4c, 0x4f, 0x2d, 0xc9,
 	0x4d, 0x4d, 0xce, 0xcf, 0x4b, 0xcb, 0x4c, 0xd7, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x4e,
-	0x2c, 0xc8, 0x54, 0x52, 0xe3, 0xe2, 0x70, 0x06, 0x0b, 0x7a, 0xa6, 0x08, 0x49, 0x21, 0xd8, 0x12,
-	0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x70, 0xbe, 0x92, 0x02, 0x17, 0x1b, 0x84, 0x2d, 0x24, 0x06,
-	0x63, 0x81, 0xd5, 0xf0, 0x04, 0x41, 0x79, 0x46, 0x46, 0x5c, 0x9c, 0xee, 0xa9, 0x25, 0x50, 0x45,
-	0xaa, 0x5c, 0xec, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x42, 0xbc, 0x7a, 0x89, 0x05, 0x99,
-	0x7a, 0x30, 0x83, 0xa4, 0xb8, 0x91, 0xb8, 0x49, 0x6c, 0x60, 0x97, 0x18, 0x03, 0x02, 0x00, 0x00,
-	0xff, 0xff, 0xef, 0x4e, 0x1b, 0xd8, 0x9e, 0x00, 0x00, 0x00,
+	0x2c, 0xc8, 0x54, 0xf2, 0xe0, 0xe2, 0x72, 0x06, 0x0b, 0x7a, 0xe6, 0xa5, 0xe5, 0x0b, 0x49, 0x71,
+	0x71, 0x40, 0x79, 0x29, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x70, 0xbe, 0x90, 0x1c, 0x4c,
+	0x65, 0x40, 0x62, 0x49, 0x86, 0x04, 0x13, 0x58, 0x16, 0x49, 0x44, 0x49, 0x81, 0x8b, 0x0d, 0xc2,
+	0x13, 0x12, 0x83, 0xb1, 0xc0, 0x66, 0xf0, 0x04, 0x41, 0x79, 0x46, 0x39, 0x5c, 0xbc, 0x10, 0x56,
+	0x70, 0x6a, 0x51, 0x59, 0x66, 0x72, 0xaa, 0x90, 0x01, 0x17, 0x4f, 0x70, 0x6a, 0x62, 0x51, 0x72,
+	0x06, 0x54, 0x23, 0xbf, 0x5e, 0x62, 0x41, 0xa6, 0x1e, 0xc2, 0x3d, 0x52, 0xe8, 0x02, 0x42, 0x9a,
+	0x5c, 0x9c, 0xee, 0xa9, 0x25, 0xb8, 0x94, 0x73, 0x23, 0x09, 0x24, 0xb1, 0x81, 0x7d, 0x69, 0x0c,
+	0x08, 0x00, 0x00, 0xff, 0xff, 0x6e, 0x78, 0x81, 0xda, 0xfa, 0x00, 0x00, 0x00,
 }
