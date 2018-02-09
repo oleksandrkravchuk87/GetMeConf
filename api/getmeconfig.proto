@@ -3,7 +3,7 @@ syntax = "proto3";
 package api;
 
 service GetConfig{
-    rpc Request(ConfigId) returns (Config)
+    rpc Request(ConfigId) returns (Config);
 }
 
 message ConfigId{
