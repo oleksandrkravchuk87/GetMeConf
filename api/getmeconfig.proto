@@ -2,12 +2,17 @@ syntax = "proto3";
 
 package api;
 
-service GetConfig{
-    rpc Request(ConfigId) returns (Config);
+service SearchConfig{
+    rpc Request(ConfigInfo) returns (ConfigInfo);
 }
 
-message ConfigId{
+service GetConfig{
+    rpc Request(ConfigInfo) returns (Config);
+}
+
+message ConfigInfo{
     string ConfigId = 1;
+    string ConfigPath = 2;
 }
 
 message Config{
