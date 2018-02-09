@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package api;
+
+service GetConfig{
+    rpc Request(ConfigId) returns (Config)
+}
+
+message ConfigId{
+    string ConfigId = 1;
+}
+
+message Config{
+    bytes Config = 1;
+}
