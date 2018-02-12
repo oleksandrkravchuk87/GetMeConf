@@ -1,19 +1,18 @@
 package main
 
 import (
-	"context"
-
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"os"
+
 	pb "github.com/YAWAL/GetMeConf/api"
-
-	"fmt"
-
-	"net"
-
 	"github.com/patrickmn/go-cache"
 	"google.golang.org/grpc"
 )
@@ -27,18 +26,28 @@ type configServer struct {
 	configCache *cache.Cache
 }
 
-type configExample struct {
-	BField bool   `json:"b_field"`
-	IField int    `json:"i_field"`
-	SField string `json:"s_field"`
+func checkFile(filePath string) error {
+	_, err := os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Printf("File %v does not exist", filePath)
+			return err
+		}
+	}
+	log.Printf("File exists in directory %v", filePath)
+	return nil
 }
 
 func getFromFile(info *pb.ConfigInfo) ([]byte, error) {
-	raw, err := ioutil.ReadFile(info.ConfigPath)
+	err := checkFile(info.ConfigPath)
 	if err != nil {
 		return nil, err
 	}
-	//var c []byte
+	raw, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", info.ConfigPath, info.ConfigId))
+	if err != nil {
+		return nil, err
+	}
+	//var c *configExample
 	//err = json.Unmarshal(raw, &c)
 	//if err != nil {
 	//	return nil, err
