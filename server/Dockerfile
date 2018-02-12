@@ -1,11 +1,20 @@
 FROM golang:1.9.2-alpine3.6 AS build
 
-WORKDIR /server
+RUN mkdir -p /go/src \
+&& mkdir -p /go/bin \
+&& mkdir -p /go/pkg
 
-ADD . /server
+ENV GOPATH=/go
+
+ENV PATH=$GOPATH/bin:$PATH
+
+RUN mkdir -p $GOPATH/src/server
+ADD . $GOPATH/src/server
+
+WORKDIR $GOPATH/src/server
 
 RUN go build -o main .
 
-CMD ["/server/main"]
+CMD ["/go/src/server/main"]
 
 EXPOSE 8081
