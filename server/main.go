@@ -77,7 +77,6 @@ func (s *configServer) GetConfig(ctx context.Context, configInfo *pb.ConfigInfo)
 
 func main() {
 	flag.Parse()
-
 	//Secure
 	//cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
 	//if err != nil {
