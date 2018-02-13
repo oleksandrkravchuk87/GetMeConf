@@ -11,6 +11,15 @@ ENV PATH=$GOPATH/bin:$PATH
 RUN mkdir -p $GOPATH/src/server
 ADD . $GOPATH/src/server
 
+RUN mkdir -p $GOPATH/src/client/config
+ADD ./config $GOPATH/src/client/config
+
+RUN mkdir -p $GOPATH/src/client/config/in
+ADD ./config/in $GOPATH/src/client/config/in
+
+RUN mkdir -p $GOPATH/src/client/config/out
+ADD ./config/out $GOPATH/src/client/config/out
+
 WORKDIR $GOPATH/src/server
 
 RUN go build -o main .

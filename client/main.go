@@ -12,8 +12,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-const address = "localhost:8081"
-const outputPath = "/home/vritual/go/src/github.com/YAWAL/GetMeConf/config/out"
+const address = "getmeconf_serverapp_1:8081"
+
+//const address = "172.20.0.2:8081"
+const outputPath = "/go/src/client/config/out"
 
 func main() {
 
@@ -50,7 +52,9 @@ func main() {
 	}
 
 	WriteFile(data.Config, outputPath, *configId)
+	for true {
 
+	}
 }
 
 func CheckPath(path string) error {
