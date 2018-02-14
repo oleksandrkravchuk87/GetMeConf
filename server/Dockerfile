@@ -18,7 +18,6 @@ RUN mkdir -p $GOPATH/src/client/config/in
 ADD ./config/in $GOPATH/src/client/config/in
 
 RUN mkdir -p $GOPATH/src/client/config/out
-ADD ./config/out $GOPATH/src/client/config/out
 
 WORKDIR $GOPATH/src/server
 

@@ -47,11 +47,6 @@ func getFromFile(info *pb.ConfigInfo) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	//var c *configExample
-	//err = json.Unmarshal(raw, &c)
-	//if err != nil {
-	//	return nil, err
-	//}
 	return raw, nil
 }
 
@@ -77,30 +72,13 @@ func (s *configServer) GetConfig(ctx context.Context, configInfo *pb.ConfigInfo)
 
 func main() {
 	flag.Parse()
-	//Secure
-	//cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
-	//if err != nil {
-	//	log.Fatal("filed to load key pair: ", err)
-	//}
-	//
-	//serverConf := &tls.Config{Certificates: []tls.Certificate{cer}}
-	//lis, err := tls.Listen("tcp", fmt.Sprintf("%s:%d", *host, *port), serverConf)
-	//if err != nil {
-	//	log.Fatal("filed to listen: ", err)
-	//}
-	//Insecure
-
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-
 	log.Printf("server started at %s:%d", *host, *port)
-
 	grpcServer := grpc.NewServer()
-
 	cache := cache.New(5*time.Minute, 10*time.Minute)
-
 	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: cache})
 	err = grpcServer.Serve(lis)
 	if err != nil {
