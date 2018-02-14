@@ -5,7 +5,7 @@
 -- Dumped from database version 9.6.7
 -- Dumped by pg_dump version 9.6.7
 
--- Started on 2018-02-14 11:07:02 EET
+-- Started on 2018-02-14 13:34:29 EET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -77,7 +77,7 @@ CREATE TABLE mongodb (
 ALTER TABLE mongodb OWNER TO postgres;
 
 --
--- TOC entry 187 (class 1259 OID 315927)
+-- TOC entry 186 (class 1259 OID 315927)
 -- Name: tempconfig; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -93,7 +93,7 @@ CREATE TABLE tempconfig (
 ALTER TABLE tempconfig OWNER TO postgres;
 
 --
--- TOC entry 186 (class 1259 OID 315924)
+-- TOC entry 187 (class 1259 OID 315994)
 -- Name: tsconfig; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -113,22 +113,35 @@ ALTER TABLE tsconfig OWNER TO postgres;
 -- Data for Name: mongodb; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('mydom', true, 'localhost', '8080');
+INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('testdom', true, '127.0.0.1', '9090');
+INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('remote', true, '227.255.255.1', '8090');
+INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('asia', true, '217.155.155.1', '8081');
 
 
 --
--- TOC entry 2167 (class 0 OID 315927)
--- Dependencies: 187
+-- TOC entry 2166 (class 0 OID 315927)
+-- Dependencies: 186
 -- Data for Name: tempconfig; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('', '', '', '', false);
+INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/', 'localhost', '8080', 'rem', true);
+INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/home', 'europa', '9080', 'local', true);
+INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/home', 'asia', '8080', 'local_uk', true);
 
 
 --
--- TOC entry 2166 (class 0 OID 315924)
--- Dependencies: 186
+-- TOC entry 2167 (class 0 OID 315994)
+-- Dependencies: 187
 -- Data for Name: tsconfig; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('admin', 'admins', true, 1);
+INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('user', 'users', true, 1);
+INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('customer', 'customers', true, 100);
+INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('vendor', 'vendors', true, 33);
+INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('admin', 'vendors', true, 0);
 
 
 --
@@ -140,7 +153,7 @@ ALTER TABLE tsconfig OWNER TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2018-02-14 11:07:03 EET
+-- Completed on 2018-02-14 13:34:30 EET
 
 --
 -- PostgreSQL database dump complete
