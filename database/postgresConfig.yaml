@@ -1,0 +1,8 @@
+  dbhost: "horton.elephantsql.com"
+  dbport: "5432"
+  dbUser: "dlxifkbx"
+  dbPassword: "L7Cey-ucPY4L3T6VFlFdNykNE4jO0VjV"
+  dbName: "dlxifkbx"
+  maxOpenedConnectionsToDb: 5
+  maxIdleConnectionsToDb: 0
+  mbConnMaxLifetimeMinutes: 30

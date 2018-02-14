@@ -66,7 +66,7 @@ SET default_with_oids = false;
 -- Name: mongodb; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE mongodb (
+CREATE TABLE mongodbs (
     domain text,
     mongodb boolean,
     host text,
@@ -74,14 +74,14 @@ CREATE TABLE mongodb (
 );
 
 
-ALTER TABLE mongodb OWNER TO postgres;
+ALTER TABLE mongodbs OWNER TO postgres;
 
 --
 -- TOC entry 186 (class 1259 OID 315927)
 -- Name: tempconfig; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE tempconfig (
+CREATE TABLE tempconfigs (
     rest_api_root text,
     host text,
     port text,
@@ -90,14 +90,14 @@ CREATE TABLE tempconfig (
 );
 
 
-ALTER TABLE tempconfig OWNER TO postgres;
+ALTER TABLE tempconfigs OWNER TO postgres;
 
 --
 -- TOC entry 187 (class 1259 OID 315994)
 -- Name: tsconfig; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE tsconfig (
+CREATE TABLE tsconfigs (
     module text,
     target text,
     source_map boolean,
@@ -105,7 +105,7 @@ CREATE TABLE tsconfig (
 );
 
 
-ALTER TABLE tsconfig OWNER TO postgres;
+ALTER TABLE tsconfigs OWNER TO postgres;
 
 --
 -- TOC entry 2165 (class 0 OID 315921)
@@ -113,10 +113,10 @@ ALTER TABLE tsconfig OWNER TO postgres;
 -- Data for Name: mongodb; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('mydom', true, 'localhost', '8080');
-INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('testdom', true, '127.0.0.1', '9090');
-INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('remote', true, '227.255.255.1', '8090');
-INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('asia', true, '217.155.155.1', '8081');
+INSERT INTO mongodbs (domain, mongodb, host, port) VALUES ('mydom', true, 'localhost', '8080');
+INSERT INTO mongodbs (domain, mongodb, host, port) VALUES ('testdom', true, '127.0.0.1', '9090');
+INSERT INTO mongodbs (domain, mongodb, host, port) VALUES ('remote', true, '227.255.255.1', '8090');
+INSERT INTO mongodbs (domain, mongodb, host, port) VALUES ('asia', true, '217.155.155.1', '8081');
 
 
 --
@@ -125,10 +125,10 @@ INSERT INTO mongodb (domain, mongodb, host, port) VALUES ('asia', true, '217.155
 -- Data for Name: tempconfig; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('', '', '', '', false);
-INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/', 'localhost', '8080', 'rem', true);
-INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/home', 'europa', '9080', 'local', true);
-INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/home', 'asia', '8080', 'local_uk', true);
+INSERT INTO tempconfigs (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('', '', '', '', false);
+INSERT INTO tempconfigs (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/', 'localhost', '8080', 'rem', true);
+INSERT INTO tempconfigs (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/home', 'europa', '9080', 'local', true);
+INSERT INTO tempconfigs (rest_api_root, host, port, remoting, legasy_explorer) VALUES ('/home', 'asia', '8080', 'local_uk', true);
 
 
 --
@@ -137,11 +137,11 @@ INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VA
 -- Data for Name: tsconfig; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('admin', 'admins', true, 1);
-INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('user', 'users', true, 1);
-INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('customer', 'customers', true, 100);
-INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('vendor', 'vendors', true, 33);
-INSERT INTO tsconfig (module, target, source_map, excluding) VALUES ('admin', 'vendors', true, 0);
+INSERT INTO tsconfigs (module, target, source_map, excluding) VALUES ('admin', 'admins', true, 1);
+INSERT INTO tsconfigs (module, target, source_map, excluding) VALUES ('user', 'users', true, 1);
+INSERT INTO tsconfigs (module, target, source_map, excluding) VALUES ('customer', 'customers', true, 100);
+INSERT INTO tsconfigs (module, target, source_map, excluding) VALUES ('vendor', 'vendors', true, 33);
+INSERT INTO tsconfigs (module, target, source_map, excluding) VALUES ('admin', 'vendors', true, 0);
 
 
 --

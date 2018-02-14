@@ -1,6 +1,6 @@
 -- +migrate Up
 -- SQL in section 'Up' is executed when this migration is applied
-CREATE TABLE tempconfig (
+CREATE TABLE tempconfigs (
   rest_api_root text,
   host text,
   port text,
@@ -8,7 +8,7 @@ CREATE TABLE tempconfig (
   legasy_explorer boolean
 );
 
-INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VALUES
+INSERT INTO tempconfigs (rest_api_root, host, port, remoting, legasy_explorer) VALUES
 ('', '', '', '', false),
 ('/', 'localhost', '8080', 'rem', true),
 ('/home', 'europa', '9080', 'local', true),
@@ -17,4 +17,4 @@ INSERT INTO tempconfig (rest_api_root, host, port, remoting, legasy_explorer) VA
 
 -- +migrate Down
 -- SQL section 'Down' is executed when this migration is rolled back
-DROP TABLE tempconfig;
+DROP TABLE tempconfigs;
