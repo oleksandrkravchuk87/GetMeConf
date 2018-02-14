@@ -1,4 +1,4 @@
-package in
+package dataStructs
 
 type Mongodb struct {
 	Domain  string `json:"domain"`

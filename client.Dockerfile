@@ -9,7 +9,7 @@ ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:$PATH
 
 RUN mkdir -p $GOPATH/src/client
-ADD . $GOPATH/src/client
+ADD client $GOPATH/src/client
 
 RUN mkdir -p $GOPATH/src/client/config
 ADD ./config $GOPATH/src/client/config
