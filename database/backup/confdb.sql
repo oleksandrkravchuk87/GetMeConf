@@ -101,7 +101,7 @@ CREATE TABLE tsconfig (
     module text,
     target text,
     source_map boolean,
-    exclude integer
+    excluding integer
 );
 
 
