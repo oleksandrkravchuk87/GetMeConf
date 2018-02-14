@@ -5,7 +5,7 @@
 -- Dumped from database version 9.6.7
 -- Dumped by pg_dump version 9.6.7
 
--- Started on 2018-02-14 10:25:26 EET
+-- Started on 2018-02-14 11:07:02 EET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -18,7 +18,7 @@ SET row_security = off;
 
 DROP DATABASE confdb;
 --
--- TOC entry 2169 (class 1262 OID 315920)
+-- TOC entry 2172 (class 1262 OID 315920)
 -- Name: confdb; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -47,7 +47,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2172 (class 0 OID 0)
+-- TOC entry 2175 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -67,10 +67,10 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE mongodb (
-    domain character(1),
+    domain text,
     mongodb boolean,
-    host character(1),
-    port character(1)
+    host text,
+    port text
 );
 
 
@@ -82,10 +82,10 @@ ALTER TABLE mongodb OWNER TO postgres;
 --
 
 CREATE TABLE tempconfig (
-    rest_api_root character(1),
-    host character(1),
-    port character(1),
-    remoting character(1),
+    rest_api_root text,
+    host text,
+    port text,
+    remoting text,
     legasy_explorer boolean
 );
 
@@ -98,8 +98,8 @@ ALTER TABLE tempconfig OWNER TO postgres;
 --
 
 CREATE TABLE tsconfig (
-    module character(1),
-    target character(1),
+    module text,
+    target text,
     source_map boolean,
     exclude integer
 );
@@ -108,7 +108,7 @@ CREATE TABLE tsconfig (
 ALTER TABLE tsconfig OWNER TO postgres;
 
 --
--- TOC entry 2162 (class 0 OID 315921)
+-- TOC entry 2165 (class 0 OID 315921)
 -- Dependencies: 185
 -- Data for Name: mongodb; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -116,7 +116,7 @@ ALTER TABLE tsconfig OWNER TO postgres;
 
 
 --
--- TOC entry 2164 (class 0 OID 315927)
+-- TOC entry 2167 (class 0 OID 315927)
 -- Dependencies: 187
 -- Data for Name: tempconfig; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -124,7 +124,7 @@ ALTER TABLE tsconfig OWNER TO postgres;
 
 
 --
--- TOC entry 2163 (class 0 OID 315924)
+-- TOC entry 2166 (class 0 OID 315924)
 -- Dependencies: 186
 -- Data for Name: tsconfig; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -132,7 +132,7 @@ ALTER TABLE tsconfig OWNER TO postgres;
 
 
 --
--- TOC entry 2171 (class 0 OID 0)
+-- TOC entry 2174 (class 0 OID 0)
 -- Dependencies: 7
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -140,7 +140,7 @@ ALTER TABLE tsconfig OWNER TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2018-02-14 10:25:26 EET
+-- Completed on 2018-02-14 11:07:03 EET
 
 --
 -- PostgreSQL database dump complete
