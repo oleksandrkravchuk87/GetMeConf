@@ -9,11 +9,11 @@ service ConfigService {
 
 message GetConfigByNameRequest {
     string ConfigName = 1;
-    bytes ConfigType = 2;
+    string ConfigType = 2;
 }
 
 message GetConfigsByTypeRequest {
-    bytes ConfigType = 1;
+    string ConfigType = 1;
 }
 
 message GetConfigResponce {
