@@ -18,6 +18,11 @@ import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
 
+import (
+	context "golang.org/x/net/context"
+	grpc "google.golang.org/grpc"
+)
+
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
@@ -89,6 +94,139 @@ func init() {
 	proto.RegisterType((*GetConfigByNameRequest)(nil), "api.GetConfigByNameRequest")
 	proto.RegisterType((*GetConfigsByTypeRequest)(nil), "api.GetConfigsByTypeRequest")
 	proto.RegisterType((*GetConfigResponce)(nil), "api.GetConfigResponce")
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// Client API for ConfigService service
+
+type ConfigServiceClient interface {
+	GetConfigByName(ctx context.Context, in *GetConfigByNameRequest, opts ...grpc.CallOption) (*GetConfigResponce, error)
+	GetConfigsByType(ctx context.Context, in *GetConfigsByTypeRequest, opts ...grpc.CallOption) (ConfigService_GetConfigsByTypeClient, error)
+}
+
+type configServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewConfigServiceClient(cc *grpc.ClientConn) ConfigServiceClient {
+	return &configServiceClient{cc}
+}
+
+func (c *configServiceClient) GetConfigByName(ctx context.Context, in *GetConfigByNameRequest, opts ...grpc.CallOption) (*GetConfigResponce, error) {
+	out := new(GetConfigResponce)
+	err := grpc.Invoke(ctx, "/api.ConfigService/GetConfigByName", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configServiceClient) GetConfigsByType(ctx context.Context, in *GetConfigsByTypeRequest, opts ...grpc.CallOption) (ConfigService_GetConfigsByTypeClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_ConfigService_serviceDesc.Streams[0], c.cc, "/api.ConfigService/GetConfigsByType", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configServiceGetConfigsByTypeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigService_GetConfigsByTypeClient interface {
+	Recv() (*GetConfigResponce, error)
+	grpc.ClientStream
+}
+
+type configServiceGetConfigsByTypeClient struct {
+	grpc.ClientStream
+}
+
+func (x *configServiceGetConfigsByTypeClient) Recv() (*GetConfigResponce, error) {
+	m := new(GetConfigResponce)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// Server API for ConfigService service
+
+type ConfigServiceServer interface {
+	GetConfigByName(context.Context, *GetConfigByNameRequest) (*GetConfigResponce, error)
+	GetConfigsByType(*GetConfigsByTypeRequest, ConfigService_GetConfigsByTypeServer) error
+}
+
+func RegisterConfigServiceServer(s *grpc.Server, srv ConfigServiceServer) {
+	s.RegisterService(&_ConfigService_serviceDesc, srv)
+}
+
+func _ConfigService_GetConfigByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConfigByNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServiceServer).GetConfigByName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.ConfigService/GetConfigByName",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServiceServer).GetConfigByName(ctx, req.(*GetConfigByNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigService_GetConfigsByType_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetConfigsByTypeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigServiceServer).GetConfigsByType(m, &configServiceGetConfigsByTypeServer{stream})
+}
+
+type ConfigService_GetConfigsByTypeServer interface {
+	Send(*GetConfigResponce) error
+	grpc.ServerStream
+}
+
+type configServiceGetConfigsByTypeServer struct {
+	grpc.ServerStream
+}
+
+func (x *configServiceGetConfigsByTypeServer) Send(m *GetConfigResponce) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+var _ConfigService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.ConfigService",
+	HandlerType: (*ConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetConfigByName",
+			Handler:    _ConfigService_GetConfigByName_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetConfigsByType",
+			Handler:       _ConfigService_GetConfigsByType_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "getmeconfig.proto",
 }
 
 func init() { proto.RegisterFile("getmeconfig.proto", fileDescriptor0) }
