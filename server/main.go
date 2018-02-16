@@ -60,6 +60,7 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 	if err != nil {
 		return err
 	}
+
 	for _, v := range res {
 		byteRes, _ := getBytes(v)
 		if err := stream.Send(&pb.GetConfigResponce{byteRes}); err != nil {
