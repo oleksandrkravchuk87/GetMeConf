@@ -15,6 +15,18 @@ import (
 )
 
 var db *gorm.DB
+var factory map[string]dataStructs.PersistedData
+
+func initConfigDataMap() {
+	if factory != nil {
+		return
+	}
+	factory = map[string]dataStructs.PersistedData{
+		"mongodb":    dataStructs.PersistedData{new(dataStructs.Mongodb), "domain"},
+		"tempconfig": dataStructs.PersistedData{new(dataStructs.TempConfig), "host"},
+		"tsconfig":   dataStructs.PersistedData{new(dataStructs.Tsconfig), "module"},
+	}
+}
 
 func InitPostgresDB(cfg PostgresConfig) (err error) {
 	if db != nil {
@@ -34,6 +46,8 @@ func InitPostgresDB(cfg PostgresConfig) (err error) {
 	db.DB().SetMaxIdleConns(cfg.MaxIdleConnectionsToDb)
 	db.DB().SetConnMaxLifetime(time.Minute * time.Duration(cfg.MbConnMaxLifetimeMinutes))
 	log.Printf("connection to postgres database has been established")
+	initConfigDataMap()
+
 	return nil
 }
 
@@ -48,12 +62,6 @@ func GetAll(db *gorm.DB) ([]dataStructs.Mongodb, error) {
 }
 
 func GetConfigByNameFromDB(confName string, confType string) (dataStructs.ConfigInterface, error) {
-
-	var factory = map[string]dataStructs.PersistedData{
-		"mongodb":    dataStructs.PersistedData{new(dataStructs.Mongodb), "domain"},
-		"tempconfig": dataStructs.PersistedData{new(dataStructs.TempConfig), "host"},
-		"tsconfig":   dataStructs.PersistedData{new(dataStructs.Tsconfig), "module"},
-	}
 
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
