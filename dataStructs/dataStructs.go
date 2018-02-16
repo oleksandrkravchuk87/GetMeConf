@@ -21,3 +21,11 @@ type TempConfig struct {
 	Remoting       string `json:"remoting"`
 	LegasyExplorer bool   `json:"legasyExplorer"`
 }
+
+type ConfigInterface interface {
+}
+
+type PersistedData struct {
+	ConfigType ConfigInterface
+	IdField    string
+}

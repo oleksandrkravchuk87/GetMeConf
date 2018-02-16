@@ -1,23 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
-
 	"log"
 	"net"
+	"sync"
 	"time"
 
-	"golang.org/x/net/context"
-
-	"sync"
-
-	"bytes"
-	"encoding/gob"
+	"errors"
 
 	pb "github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/patrickmn/go-cache"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
@@ -43,7 +40,7 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 	if err != nil {
 		return nil, err
 	}
-	byteRes, err := getBytes(res)
+	byteRes, err := json.Marshal(res)
 	if err != nil {
 		return nil, err
 	}
@@ -55,29 +52,50 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 }
 func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest, stream pb.ConfigService_GetConfigsByTypeServer) error {
 
-	res, err := database.GetConfigsByTypeFromDB(typeRequest.ConfigType)
-
-	if err != nil {
-		return err
-	}
-
-	for _, v := range res {
-		byteRes, _ := getBytes(v)
-		if err := stream.Send(&pb.GetConfigResponce{byteRes}); err != nil {
+	switch typeRequest.ConfigType {
+	case "mongodb":
+		res, err := database.GetMongoDBConfigs()
+		if err != nil {
 			return err
 		}
+		for _, v := range res {
+			if err = marshalAndSend(v, stream); err != nil {
+				return err
+			}
+		}
+	case "tempconfig":
+		res, err := database.GetTempConfigs()
+		if err != nil {
+			return err
+		}
+		for _, v := range res {
+			if err = marshalAndSend(v, stream); err != nil {
+				return err
+			}
+		}
+	case "tsconfig":
+		res, err := database.GetTsconfigs()
+		if err != nil {
+			return err
+		}
+		for _, v := range res {
+			if err = marshalAndSend(v, stream); err != nil {
+				return err
+			}
+		}
+	default:
+		log.Print("unexpacted type")
+		return errors.New("unexpacted type")
 	}
 	return nil
 }
 
-func getBytes(key interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(key)
+func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTypeServer) error {
+	byteRes, err := json.Marshal(results)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return buf.Bytes(), nil
+	return stream.Send(&pb.GetConfigResponce{byteRes})
 }
 
 func main() {

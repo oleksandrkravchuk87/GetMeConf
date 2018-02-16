@@ -7,34 +7,34 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/YAWAL/GetMeConf/api"
+	"fmt"
+
+	"strings"
+
+	"io"
+
+	"encoding/json"
+
+	pb "github.com/YAWAL/GetMeConf/api"
+	"github.com/YAWAL/GetMeConf/dataStructs"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
-const address = "getmeconf_serverapp_1:8081"
-
+//const address = "getmeconf_serverapp_1:8081"
 //const address = "172.20.0.2:8081"
+const address = "localhost:8081"
+
 const outputPath = "/go/src/client/config/out"
 
 func main() {
 
-	configId := flag.String("config-id", "", "config id")
-	configPath := flag.String("config-path", "", "config file path")
+	configName := flag.String("config-name", "", "config name")
+	configType := flag.String("config-type", "", "config type")
 	//serverPort := flag.String("server", "localhost:50111", "port for connection to server")
 	flag.Parse()
 
-	log.Println("Start checking input data")
-
-	if err := CheckPath(*configPath); err != nil {
-		log.Println("Path to config wrong: ", err)
-	}
-
-	if err := CheckFile(*configId, *configPath); err != nil {
-		log.Println("File does not exist: ", err)
-	}
-
-	log.Printf("Start to prepare data about config in: %v with name %s\n", *configPath, *configId)
+	log.Printf("Start to prepare data about config in: %v with name %s\n", *configType, *configName)
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	defer conn.Close()
@@ -42,19 +42,70 @@ func main() {
 		log.Fatalf("DialContext error has occurred: %v", err)
 	}
 
-	client := api.NewConfigServiceClient(conn)
+	client := pb.NewConfigServiceClient(conn)
 	//config information for receiving to the server
-	cnfgInfo := api.ConfigInfo{ConfigId: *configId, ConfigPath: *configPath}
+	confByNameRequest := &pb.GetConfigByNameRequest{ConfigType: *configType, ConfigName: *configName}
 
-	data, err := client.GetConfig(context.Background(), &cnfgInfo)
+	data, err := client.GetConfigByName(context.Background(), confByNameRequest)
 	if err != nil {
 		log.Fatalf("Getting config error has occured: %v", err)
 	}
+	fmt.Println("conf")
+	fmt.Println(string(data.Config))
 
-	WriteFile(data.Config, outputPath, *configId)
-	for true {
-
+	type configInterface interface {
 	}
+
+	type persistedData struct {
+		configType configInterface
+		idField    string
+	}
+	//var factory = map[string]persistedData{
+	//	"mongodb":    persistedData{dataStructs.Mongodb{}, "domain"},
+	//	"tempconfig": persistedData{dataStructs.TempConfig{}, "host"},
+	//	"tsconfig":   persistedData{dataStructs.Tsconfig{}, "module"},
+	//}
+	//
+	//
+
+	var factory = map[string]persistedData{
+		"mongodb":    persistedData{new(dataStructs.Mongodb), "domain"},
+		"tempconfig": persistedData{new(dataStructs.TempConfig), "host"},
+		"tsconfig":   persistedData{new(dataStructs.Tsconfig), "module"},
+	}
+
+	cType := strings.ToLower(*configType)
+	configStruct, ok := factory[cType]
+	if !ok {
+		fmt.Println("unexpected config type")
+	}
+
+	result := configStruct.configType
+
+	err = json.Unmarshal(data.Config, result)
+	if err != nil {
+		fmt.Print(err)
+	}
+	fmt.Println("str")
+	fmt.Println(result)
+
+	//
+	confByTypeRequest := &pb.GetConfigsByTypeRequest{ConfigType: *configType}
+	stream, err := client.GetConfigsByType(context.Background(), confByTypeRequest)
+	if err != nil {
+		log.Fatalf("Getting config error has occured: %v", err)
+	}
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(string(resp.Config))
+	}
+
 }
 
 func CheckPath(path string) error {
