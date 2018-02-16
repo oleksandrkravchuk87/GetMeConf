@@ -4,38 +4,37 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 
 	"github.com/YAWAL/GetMeConf/api"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"io"
 )
 
-const address = "getmeconf_serverapp_1:8081"
+const address = "localhost:8081"
 
-//const address = "172.20.0.2:8081"
-const outputPath = "/go/src/client/config/out"
+var (
+	client     api.ConfigServiceClient
+	configName *string
+	configType *string
+	outPath    *string
+)
 
 func main() {
 
 	configName := flag.String("config-name", "", "config name")
 	configType := flag.String("config-type", "", "config type")
-	configPath := flag.String("config-path", "", "config file path")
+	outPath := flag.String("outpath", "", "output path for config file")
 	//serverPort := flag.String("server", "localhost:50111", "port for connection to server")
 	flag.Parse()
 
-	log.Println("Start checking input data")
-
-	if err := CheckPath(*configPath); err != nil {
-		log.Println("Path to config wrong: ", err)
+	if *configName == "" && *configType == ""{
+		log.Fatal("Can't proccess => config name and config type are empty")
 	}
 
-	if err := CheckFile(*configName, *configPath); err != nil {
-		log.Println("File does not exist: ", err)
-	}
-
-	log.Printf("Start to prepare data about config in: %v with name %s\n", *configPath, *configName)
+	log.Printf("Start checking input data:\n Config name: %v\n Config typy : %v\n Output path: %v", *configName, * configType, * outPath)
+	log.Printf("Processing ...")
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	defer conn.Close()
@@ -43,40 +42,60 @@ func main() {
 		log.Fatalf("DialContext error has occurred: %v", err)
 	}
 
-	client := api.NewConfigServiceClient(conn)
+	client = api.NewConfigServiceClient(conn)
 
+	if *configName != "" && *configType != "" {
+		retrieveConfig(*configName, *outPath)
+	}
 
-	for true {}
-}
+	if *configName == "" && *configType != "" {
+		retrieveConfigs()
 
-func CheckPath(path string) error {
-	if stat, err := os.Stat(path); err == nil && stat.IsDir() {
-		log.Printf("Path: %v exists", path)
-		return nil
-	} else {
-		return err
+	}
+
+	for true {
 	}
 }
 
-func CheckFile(configId, configPath string) error {
-	filePath := filepath.Join(configPath, configId)
-	_, err := os.Stat(filePath)
+func retrieveConfig(fileName, outputPath string) {
+	conf, err := client.GetConfigByName(context.Background(), &api.GetConfigByNameRequest{ConfigName: *configName, ConfigType: *configType})
 	if err != nil {
-		if os.IsNotExist(err) {
-			log.Printf("File %v does not exist", configId)
-			return err
-		}
+		log.Fatalf("Error during retrieving config has occurred: %v", err)
 	}
-	log.Printf("File %v  exist in directory %v", configId, configPath)
-	return nil
+	if err := WriteFile(conf.Config, fileName, outputPath); err != nil {
+		log.Fatalf("Error during writing file in retrieving config: %v", err)
+	}
 }
 
-func WriteFile(data []byte, outputPath, fileName string) error {
-	if err := ioutil.WriteFile(filepath.Join(outputPath, fileName), data, 0666); err != nil {
+func retrieveConfigs() {
+	stream, err := client.GetConfigsByType(context.Background(), &api.GetConfigsByTypeRequest{ConfigType: *configType})
+	if err != nil {
+		log.Fatalf("Error during retrieving configs has occurred:%v", err)
+	}
+	for  {
+		config, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error during streaming has occurred: %v", err)
+		}
+
+		//procesing configs
+	}
+
+
+
+
+}
+
+
+func WriteFile(data []byte, fileName, outPath string) error {
+	if err := ioutil.WriteFile(filepath.Join(outPath, fileName, ".json"), data, 0666); err != nil {
 		log.Fatalf("Error during file creation: %v", err)
 		return err
 	} else {
-		log.Printf("File %v has been created in %v", fileName, outputPath)
+		log.Printf("File %v has been created in %v", fileName, outPath)
 		return nil
 	}
 }
