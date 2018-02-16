@@ -3,16 +3,20 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+
 	"log"
 	"net"
 	"time"
 
 	"golang.org/x/net/context"
 
-	"os"
+	"sync"
+
+	"bytes"
+	"encoding/gob"
 
 	pb "github.com/YAWAL/GetMeConf/api"
+	"github.com/YAWAL/GetMeConf/database"
 	"github.com/patrickmn/go-cache"
 	"google.golang.org/grpc"
 )
@@ -24,59 +28,68 @@ var (
 
 type configServer struct {
 	configCache *cache.Cache
+	mut         *sync.Mutex
 }
 
-func checkFile(filePath string) error {
-	_, err := os.Stat(filePath)
+func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetConfigByNameRequest) (*pb.GetConfigResponce, error) {
+	s.mut.Lock()
+	configResponse, found := s.configCache.Get(nameRequest.ConfigName)
+	s.mut.Unlock()
+	if found {
+		return configResponse.(*pb.GetConfigResponce), nil
+	}
+
+	res, err := database.GetConfigByNameFromDB(nameRequest.ConfigName, nameRequest.ConfigType)
 	if err != nil {
-		if os.IsNotExist(err) {
-			log.Printf("File %v does not exist", filePath)
+		return nil, err
+	}
+	byteRes, err := getBytes(res)
+	if err != nil {
+		return nil, err
+	}
+	configResponse = &pb.GetConfigResponce{byteRes}
+	s.mut.Lock()
+	s.configCache.Set(nameRequest.ConfigName, configResponse, cache.DefaultExpiration)
+	s.mut.Unlock()
+	return configResponse.(*pb.GetConfigResponce), nil
+}
+func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest, stream pb.ConfigService_GetConfigsByTypeServer) error {
+
+	res, err := database.GetConfigsByTypeFromDB(typeRequest.ConfigType)
+
+	if err != nil {
+		return err
+	}
+	for _, v := range res {
+		byteRes, _ := getBytes(v)
+		if err := stream.Send(&pb.GetConfigResponce{byteRes}); err != nil {
 			return err
 		}
 	}
-	log.Printf("File exists in directory %v", filePath)
 	return nil
 }
 
-func getFromFile(info *pb.ConfigInfo) ([]byte, error) {
-	err := checkFile(info.ConfigPath)
+func getBytes(key interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(key)
 	if err != nil {
 		return nil, err
 	}
-	raw, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", info.ConfigPath, info.ConfigId))
-	if err != nil {
-		return nil, err
-	}
-	//var c *configExample
-	//err = json.Unmarshal(raw, &c)
-	//if err != nil {
-	//	return nil, err
-	//}
-	return raw, nil
-}
-
-func (s *configServer) SearchConfig(ctx context.Context, configInfo *pb.ConfigInfo) (*pb.ConfigInfo, error) {
-	return &pb.ConfigInfo{}, nil
-}
-
-func (s *configServer) GetConfig(ctx context.Context, configInfo *pb.ConfigInfo) (*pb.Config, error) {
-	if config, found := s.configCache.Get(configInfo.ConfigId); found {
-		return config.(*pb.Config), nil
-	}
-	log.Println(configInfo.ConfigPath)
-	raw, err := getFromFile(configInfo)
-	if err != nil {
-		return nil, err
-	}
-	config := &pb.Config{raw}
-	s.configCache.Set(configInfo.ConfigId, config, cache.DefaultExpiration)
-
-	return config, nil
-
+	return buf.Bytes(), nil
 }
 
 func main() {
 	flag.Parse()
+
+	cfg, err := database.ReadConfig()
+	if err != nil {
+		log.Fatalf("cannot read config from file with error : %v", err)
+	}
+	if err = database.InitPostgresDB(*cfg); err != nil {
+		log.Fatal(err)
+	}
+
 	//Secure
 	//cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
 	//if err != nil {
@@ -101,7 +114,7 @@ func main() {
 
 	cache := cache.New(5*time.Minute, 10*time.Minute)
 
-	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: cache})
+	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: cache, mut: &sync.Mutex{}})
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Fatal("filed to serve: %v", err)
