@@ -22,12 +22,13 @@ func initConfigDataMap() {
 		return
 	}
 	factory = map[string]dataStructs.PersistedData{
-		"mongodb":    dataStructs.PersistedData{new(dataStructs.Mongodb), "domain"},
-		"tempconfig": dataStructs.PersistedData{new(dataStructs.TempConfig), "host"},
-		"tsconfig":   dataStructs.PersistedData{new(dataStructs.Tsconfig), "module"},
+		"mongodb":    dataStructs.PersistedData{ConfigType: new(dataStructs.Mongodb), IDField: "domain"},
+		"tempconfig": dataStructs.PersistedData{ConfigType: new(dataStructs.Tempconfig), IDField: "host"},
+		"tsconfig":   dataStructs.PersistedData{ConfigType: new(dataStructs.Tsconfig), IDField: "module"},
 	}
 }
 
+//InitPostgresDB initiates database connection using configuration file
 func InitPostgresDB(cfg PostgresConfig) (err error) {
 	if db != nil {
 		log.Printf("connection to postgres database already exists")
@@ -52,7 +53,6 @@ func InitPostgresDB(cfg PostgresConfig) (err error) {
 }
 
 func GetAll(db *gorm.DB) ([]dataStructs.Mongodb, error) {
-
 	var results []dataStructs.Mongodb
 	err := db.Find(&results).Error
 	if err != nil {
@@ -61,8 +61,8 @@ func GetAll(db *gorm.DB) ([]dataStructs.Mongodb, error) {
 	return results, nil
 }
 
+//GetConfigByNameFromDB(confName string, confType string) searches a config in database using the type of the config and a unique name
 func GetConfigByNameFromDB(confName string, confType string) (dataStructs.ConfigInterface, error) {
-
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
 	if !ok {
@@ -71,18 +71,17 @@ func GetConfigByNameFromDB(confName string, confType string) (dataStructs.Config
 	if !db.HasTable(configStruct.ConfigType) {
 		return nil, errors.New("could not find table " + cType)
 	}
-
 	result := configStruct.ConfigType
-	err := db.Where(configStruct.IdField+" = ?", confName).Find(result).Error
+	err := db.Where(configStruct.IDField+" = ?", confName).Find(result).Error
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
+//GetMongoDBConfigs() searches for all Mongodb configs in database
 func GetMongoDBConfigs() ([]dataStructs.Mongodb, error) {
 	var confSlice []dataStructs.Mongodb
-	db.LogMode(true)
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -90,9 +89,9 @@ func GetMongoDBConfigs() ([]dataStructs.Mongodb, error) {
 	return confSlice, nil
 }
 
-func GetTempConfigs() ([]dataStructs.TempConfig, error) {
-	var confSlice []dataStructs.TempConfig
-	db.LogMode(true)
+//GetTempConfigs() searches for all TempConfig in database
+func GetTempConfigs() ([]dataStructs.Tempconfig, error) {
+	var confSlice []dataStructs.Tempconfig
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -100,9 +99,9 @@ func GetTempConfigs() ([]dataStructs.TempConfig, error) {
 	return confSlice, nil
 }
 
+//GetTsconfigs() searches for all Tsconfigs in database
 func GetTsconfigs() ([]dataStructs.Tsconfig, error) {
 	var confSlice []dataStructs.Tsconfig
-	db.LogMode(true)
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err

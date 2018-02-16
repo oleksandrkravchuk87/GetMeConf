@@ -8,7 +8,7 @@ import (
 
 var configPath = "postgresConfig.yaml"
 
-//PostgresConfigStr structs yaml configuration
+//PostgresConfig structs yaml configuration
 type PostgresConfig struct {
 	Dbhost                   string `yaml:"dbhost"`
 	Dbport                   string `yaml:"dbport"`

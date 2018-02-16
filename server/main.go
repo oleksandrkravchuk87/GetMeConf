@@ -28,6 +28,7 @@ type configServer struct {
 	mut         *sync.Mutex
 }
 
+//GetConfigByName returns one config in GetConfigResponce message
 func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetConfigByNameRequest) (*pb.GetConfigResponce, error) {
 	s.mut.Lock()
 	configResponse, found := s.configCache.Get(nameRequest.ConfigName)
@@ -44,12 +45,14 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 	if err != nil {
 		return nil, err
 	}
-	configResponse = &pb.GetConfigResponce{byteRes}
+	configResponse = &pb.GetConfigResponce{Config: byteRes}
 	s.mut.Lock()
 	s.configCache.Set(nameRequest.ConfigName, configResponse, cache.DefaultExpiration)
 	s.mut.Unlock()
 	return configResponse.(*pb.GetConfigResponce), nil
 }
+
+//GetConfigByName streams configs as GetConfigResponce messages
 func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest, stream pb.ConfigService_GetConfigsByTypeServer) error {
 
 	switch typeRequest.ConfigType {
@@ -95,7 +98,7 @@ func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTyp
 	if err != nil {
 		return err
 	}
-	return stream.Send(&pb.GetConfigResponce{byteRes})
+	return stream.Send(&pb.GetConfigResponce{Config: byteRes})
 }
 
 func main() {
@@ -136,6 +139,6 @@ func main() {
 	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: cache, mut: &sync.Mutex{}})
 	err = grpcServer.Serve(lis)
 	if err != nil {
-		log.Fatal("filed to serve: %v", err)
+		log.Fatalf("filed to serve: %v", err)
 	}
 }
