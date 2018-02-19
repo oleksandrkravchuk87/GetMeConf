@@ -12,7 +12,7 @@ import (
 	"io"
 )
 
-const address = "172.17.0.1:10.0.2.15:8081"
+const address = "localhost:8081"
 
 var (
 	//client     api.ConfigServiceClient
@@ -50,10 +50,19 @@ func main() {
 
 		err := retrieveConfig(configName, outPath, client)
 		if err != nil {
-			log.Fatalf("!!!: %v", err)
+			log.Fatalf("retrieveConfig err: %v", err)
 		}
 	}
 
+	if *configName == "" && *configType != "" {
+
+		err := retrieveConfigs(outPath, client)
+		if err != nil {
+			log.Fatalf("retrieveConfigs err : %v", err)
+
+		}
+
+	}
 	log.Printf("End retrieveConfig...")
 
 	//for true {
@@ -73,23 +82,26 @@ func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient
 	return nil
 }
 
-func retrieveConfigs() {
+func retrieveConfigs(fileNames []string, outputPath *string, client api.ConfigServiceClient) error {
 	stream, err := client.GetConfigsByType(context.Background(), &api.GetConfigsByTypeRequest{ConfigType: *configType})
 	if err != nil {
-		log.Fatalf("Error during retrieving configs has occurred:%v", err)
+		log.Fatalf("Error during retrieving stream configs has occurred:%v", err)
 	}
-	for  {
+	for {
 		config, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			log.Fatalf("Error during streaming has occurred: %v", err)
+			return err
+		}
+		if err := WriteFiles(config.Config, fileNames, *outputPath); err != nil {
+			log.Fatalf("Error during WriteFile configs has occurred:%v", err)
 		}
 
-		//procesing configs
 	}
-
+	return nil
 }
 
 func WriteFile(data []byte, fileName, outPath string) error {
@@ -100,5 +112,18 @@ func WriteFile(data []byte, fileName, outPath string) error {
 	} else {
 		log.Printf("File %v has been created in %v", fileName, outPath)
 		return nil
+	}
+}
+
+func WriteFiles(data []byte, fileNames []string, outPath string) error {
+	for _, fileName := range fileNames{
+		fileName = fileName + ".json"
+		if err := ioutil.WriteFile(filepath.Join(outPath, fileName), data, 0666); err != nil {
+			log.Fatalf("Error during file creation: %v", err)
+			return err
+		} else {
+			log.Printf("File %v has been created in %v", fileName, outPath)
+			return nil
+		}
 	}
 }
