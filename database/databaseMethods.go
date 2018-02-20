@@ -116,15 +116,6 @@ func gormMigrate(db *gorm.DB) error {
 	return err
 }
 
-func GetAll(db *gorm.DB) ([]Mongodb, error) {
-	var results []Mongodb
-	err := db.Find(&results).Error
-	if err != nil {
-		return nil, err
-	}
-	return results, nil
-}
-
 //GetConfigByNameFromDB(confName string, confType string) searches a config in database using the type of the config and a unique name
 func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (ConfigInterface, error) {
 	cType := strings.ToLower(confType)
