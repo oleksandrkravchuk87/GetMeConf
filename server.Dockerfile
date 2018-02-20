@@ -8,17 +8,13 @@ ENV GOPATH=/go
 
 ENV PATH=$GOPATH/bin:$PATH
 
-RUN mkdir -p $GOPATH/src/server
+RUN mkdir -p $GOPATH/src/server \
+&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/database \
+&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
+
+
 ADD ./server $GOPATH/src/server
-
-
-RUN mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/dataStructs
-ADD ./dataStructs $GOPATH/src/github.com/YAWAL/GetMeConf/dataStructs
-
-RUN mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/database
 ADD ./database $GOPATH/src/github.com/YAWAL/GetMeConf/database
-
-RUN mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
 ADD ./api $GOPATH/src/github.com/YAWAL/GetMeConf/api
 
 ADD ./vendor $GOPATH/src/vendor

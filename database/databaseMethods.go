@@ -9,23 +9,21 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/YAWAL/GetMeConf/dataStructs"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"gopkg.in/gormigrate.v1"
 )
 
-var factory map[string]dataStructs.PersistedData
+var factory map[string]PersistedData
 
 func initConfigDataMap() {
 	if factory != nil {
 		return
 	}
-	factory = map[string]dataStructs.PersistedData{
-		"mongodb":    dataStructs.PersistedData{ConfigType: new(dataStructs.Mongodb), IDField: "domain"},
-		"tempconfig": dataStructs.PersistedData{ConfigType: new(dataStructs.Tempconfig), IDField: "host"},
-		"tsconfig":   dataStructs.PersistedData{ConfigType: new(dataStructs.Tsconfig), IDField: "module"},
+	factory = map[string]PersistedData{
+		"mongodb":    PersistedData{ConfigType: new(Mongodb), IDField: "domain"},
+		"tempconfig": PersistedData{ConfigType: new(Tempconfig), IDField: "host"},
+		"tsconfig":   PersistedData{ConfigType: new(Tsconfig), IDField: "module"},
 	}
 }
 
@@ -118,8 +116,8 @@ func gormMigrate(db *gorm.DB) error {
 	return err
 }
 
-func GetAll(db *gorm.DB) ([]dataStructs.Mongodb, error) {
-	var results []dataStructs.Mongodb
+func GetAll(db *gorm.DB) ([]Mongodb, error) {
+	var results []Mongodb
 	err := db.Find(&results).Error
 	if err != nil {
 		return nil, err
@@ -128,7 +126,7 @@ func GetAll(db *gorm.DB) ([]dataStructs.Mongodb, error) {
 }
 
 //GetConfigByNameFromDB(confName string, confType string) searches a config in database using the type of the config and a unique name
-func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (dataStructs.ConfigInterface, error) {
+func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (ConfigInterface, error) {
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
 	if !ok {
@@ -146,8 +144,8 @@ func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (dataS
 }
 
 //GetMongoDBConfigs(db *gorm.DB) searches for all Mongodb configs in database
-func GetMongoDBConfigs(db *gorm.DB) ([]dataStructs.Mongodb, error) {
-	var confSlice []dataStructs.Mongodb
+func GetMongoDBConfigs(db *gorm.DB) ([]Mongodb, error) {
+	var confSlice []Mongodb
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -156,8 +154,8 @@ func GetMongoDBConfigs(db *gorm.DB) ([]dataStructs.Mongodb, error) {
 }
 
 //GetTempConfigs(db *gorm.DB) searches for all TempConfig in database
-func GetTempConfigs(db *gorm.DB) ([]dataStructs.Tempconfig, error) {
-	var confSlice []dataStructs.Tempconfig
+func GetTempConfigs(db *gorm.DB) ([]Tempconfig, error) {
+	var confSlice []Tempconfig
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -166,8 +164,8 @@ func GetTempConfigs(db *gorm.DB) ([]dataStructs.Tempconfig, error) {
 }
 
 //GetTsconfigs(db *gorm.DB) searches for all Tsconfigs in database
-func GetTsconfigs(db *gorm.DB) ([]dataStructs.Tsconfig, error) {
-	var confSlice []dataStructs.Tsconfig
+func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
+	var confSlice []Tsconfig
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
