@@ -59,6 +59,7 @@ func main() {
 	log.Printf("End retrieveConfig...")
 
 	for true {
+
 	}
 }
 
