@@ -9,13 +9,10 @@ import (
 	"github.com/YAWAL/GetMeConf/api"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"io"
 )
 
-//const address = "getmeconf_serverapp_1:8081"
-
 const address = "localhost:8081"
-
-const outputPath = "/go/src/client/config/out"
 
 var (
 	//client     api.ConfigServiceClient
@@ -37,6 +34,7 @@ func main() {
 	log.Printf("Processing ...")
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	conn.GetState()
 	defer conn.Close()
 	log.Printf("State: %v", conn.GetState())
 
@@ -52,15 +50,23 @@ func main() {
 
 		err := retrieveConfig(configName, outPath, client)
 		if err != nil {
-			log.Fatalf("!!!: %v", err)
+			log.Fatalf("retrieveConfig err: %v", err)
 		}
 	}
 
-	log.Printf("End retrieveConfig...")
+	if *configName == "" && *configType != "" {
 
-	for true {
+		err := retrieveConfigs(outPath, client)
+		if err != nil {
+			log.Fatalf("retrieveConfigs err : %v", err)
+
+		}
 
 	}
+	log.Printf("End retrieveConfig...")
+
+	//for true {
+	//}
 }
 
 func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient) error {
@@ -76,6 +82,28 @@ func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient
 	return nil
 }
 
+func retrieveConfigs(fileNames []string, outputPath *string, client api.ConfigServiceClient) error {
+	stream, err := client.GetConfigsByType(context.Background(), &api.GetConfigsByTypeRequest{ConfigType: *configType})
+	if err != nil {
+		log.Fatalf("Error during retrieving stream configs has occurred:%v", err)
+	}
+	for {
+		config, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error during streaming has occurred: %v", err)
+			return err
+		}
+		if err := WriteFiles(config.Config, fileNames, *outputPath); err != nil {
+			log.Fatalf("Error during WriteFile configs has occurred:%v", err)
+		}
+
+	}
+	return nil
+}
+
 func WriteFile(data []byte, fileName, outPath string) error {
 	fileName = fileName + ".json"
 	if err := ioutil.WriteFile(filepath.Join(outPath, fileName), data, 0666); err != nil {
@@ -84,5 +112,18 @@ func WriteFile(data []byte, fileName, outPath string) error {
 	} else {
 		log.Printf("File %v has been created in %v", fileName, outPath)
 		return nil
+	}
+}
+
+func WriteFiles(data []byte, fileNames []string, outPath string) error {
+	for _, fileName := range fileNames{
+		fileName = fileName + ".json"
+		if err := ioutil.WriteFile(filepath.Join(outPath, fileName), data, 0666); err != nil {
+			log.Fatalf("Error during file creation: %v", err)
+			return err
+		} else {
+			log.Printf("File %v has been created in %v", fileName, outPath)
+			return nil
+		}
 	}
 }
