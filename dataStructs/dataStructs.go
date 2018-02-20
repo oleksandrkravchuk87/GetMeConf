@@ -10,8 +10,8 @@ type Mongodb struct {
 type Tsconfig struct {
 	Module    string `json:"module"`
 	Target    string `json:"target"`
-	SourseMap bool   `json:"sourseMap"`
-	Exclude   int    `json:"exclude"`
+	SourceMap bool   `json:"sourceMap"`
+	Excluding int    `json:"excluding"`
 }
 
 type Tempconfig struct {

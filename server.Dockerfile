@@ -9,16 +9,21 @@ ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:$PATH
 
 RUN mkdir -p $GOPATH/src/server
-ADD . $GOPATH/src/server
+ADD ./server $GOPATH/src/server
 
-RUN mkdir -p $GOPATH/src/client/config
-ADD ./config $GOPATH/src/client/config
 
-RUN mkdir -p $GOPATH/src/client/config/in
-ADD ./config/in $GOPATH/src/client/config/in
+RUN mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/dataStructs
+ADD ./dataStructs $GOPATH/src/github.com/YAWAL/GetMeConf/dataStructs
 
-RUN mkdir -p $GOPATH/src/client/config/out
-ADD ./config/out $GOPATH/src/client/config/out
+RUN mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/database
+ADD ./database $GOPATH/src/github.com/YAWAL/GetMeConf/database
+
+RUN mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
+ADD ./api $GOPATH/src/github.com/YAWAL/GetMeConf/api
+
+ADD ./vendor $GOPATH/src/vendor
+ADD ./Gopkg.lock $GOPATH/src/
+ADD ./Gopkg.toml $GOPATH/src/
 
 WORKDIR $GOPATH/src/server
 
