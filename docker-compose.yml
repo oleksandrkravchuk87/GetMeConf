@@ -26,7 +26,7 @@ services:
  clientapp:
   build:
    context: "."
-   dockerfile: "restClient.server.Dockerfile"
+   dockerfile: "restClient.Dockerfile"
   networks:
    - conf_net
   depends_on:
