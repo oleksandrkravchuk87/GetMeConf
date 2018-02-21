@@ -21,7 +21,7 @@ import (
 
 var (
 	host = flag.String("host", "localhost", "Server host")
-	port = flag.Int("port", 3000, "Server port")
+	port = flag.String("port", "3000", "Server port")
 )
 
 type configServer struct {
@@ -128,12 +128,12 @@ func main() {
 	//}
 	//Insecure
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	log.Printf("server started at %s:%d", *host, *port)
+	log.Printf("server started at %s:%s", *host, *port)
 
 	grpcServer := grpc.NewServer()
 
