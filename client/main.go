@@ -110,7 +110,7 @@ func retrieveConfigs(outputPath *string, client api.ConfigServiceClient) error {
 			WriteFile(config.Config, fileName, *outPath)
 
 		case "tempconfig":
-			var tempconfig database.TempConfig
+			var tempconfig database.Tempconfig
 			err := json.Unmarshal(config.Config, &tempconfig)
 			if err != nil {
 				log.Fatalf("Unmarshal tempconfig err: %v", err)
@@ -144,18 +144,3 @@ func WriteFile(data []byte, fileName, outPath string) error {
 		return nil
 	}
 }
-
-//
-//func WriteFiles(data []byte, fileNames []string, outPath string) error {
-//	for _, fileName := range fileNames {
-//		fileName = fileName + ".json"
-//		if err := ioutil.WriteFile(filepath.Join(outPath, fileName), data, 0666); err != nil {
-//			log.Fatalf("Error during file creation: %v", err)
-//			return err
-//		} else {
-//			log.Printf("File %v has been created in %v", fileName, outPath)
-//			return nil
-//		}
-//	}
-//	return nil
-//}
