@@ -115,19 +115,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//Secure
-	//cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
-	//if err != nil {
-	//	log.Fatal("filed to load key pair: ", err)
-	//}
-	//
-	//serverConf := &tls.Config{Certificates: []tls.Certificate{cer}}
-	//lis, err := tls.Listen("tcp", fmt.Sprintf("%s:%d", *host, *port), serverConf)
-	//if err != nil {
-	//	log.Fatal("filed to listen: ", err)
-	//}
-	//Insecure
-
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
