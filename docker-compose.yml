@@ -29,6 +29,8 @@ services:
    dockerfile: "restClient.Dockerfile"
   networks:
    - conf_net
+  ports:
+   - "127.0.0.1:8080:8080"
   depends_on:
    - serverapp
    - db

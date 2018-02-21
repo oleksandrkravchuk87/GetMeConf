@@ -8,6 +8,10 @@ import (
 
 	"io"
 
+	"flag"
+
+	"fmt"
+
 	"github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/gin-gonic/gin"
@@ -15,10 +19,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-const address = "localhost:3000"
+var (
+	port        = flag.String("port", "8080", "Server port")
+	serviceHost = flag.String("serviceHost", "localhost", "Server host")
+	servicePort = flag.String("servicePort", "3000", "Server port")
+)
 
 func main() {
-
+	flag.Parse()
+	address := fmt.Sprintf("%s:%s", *serviceHost, *servicePort)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	conn.GetState()
 	defer conn.Close()
@@ -58,7 +67,7 @@ func main() {
 		})
 	})
 
-	if err := hs.Run(":8080"); err != nil {
+	if err := hs.Run(":" + *port); err != nil {
 		log.Fatalf("filed to run server: %v", err)
 	}
 
