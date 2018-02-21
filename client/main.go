@@ -35,7 +35,7 @@ func main() {
 	log.Printf("Start checking input data:\n Config name: %v\n Config type : %v\n Output path: %v", *configName, *configType, *outPath)
 	log.Printf("Processing ...")
 
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	conn.GetState()
 	defer conn.Close()
 	log.Printf("State: %v", conn.GetState())
