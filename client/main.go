@@ -53,7 +53,7 @@ func main() {
 	}
 
 	if *configName == "" && *configType != "" {
-		err := retrieveConfigs(outPath, client)
+		err := retrieveConfigs(client)
 		if err != nil {
 			log.Fatalf("retrieveConfigs err : %v", err)
 		}
@@ -77,7 +77,7 @@ func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient
 	return nil
 }
 
-func retrieveConfigs(outputPath *string, client api.ConfigServiceClient) error {
+func retrieveConfigs(client api.ConfigServiceClient) error {
 	stream, err := client.GetConfigsByType(context.Background(), &api.GetConfigsByTypeRequest{ConfigType: *configType})
 	if err != nil {
 		log.Fatalf("Error during retrieving stream configs has occurred:%v", err)
