@@ -17,7 +17,6 @@ import (
 const address = "localhost:8081"
 
 var (
-	//client     api.ConfigServiceClient
 	configName = flag.String("config-name", "", "config name")
 	configType = flag.String("config-type", "", "config type")
 	outPath    = flag.String("outpath", "", "output path for config file")
@@ -25,30 +24,27 @@ var (
 
 func main() {
 
-	//serverPort := flag.String("server", "localhost:50111", "port for connection to server")
 	flag.Parse()
 
 	if *configName == "" && *configType == "" {
 		log.Fatal("Can't proccess => config name and config type are empty")
 	}
 
-	log.Printf("Start checking input data:\n Config name: %v\n Config type : %v\n Output path: %v", *configName, *configType, *outPath)
-	log.Printf("Processing ...")
+	log.Printf("Start checking input data:\n Config name: %v\n Config type : %v\n Output path: %v\nProcessing ...", *configName, *configType, *outPath)
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	conn.GetState()
 	defer conn.Close()
 	log.Printf("State: %v", conn.GetState())
 
 	if err != nil {
-		log.Fatalf("DialContext error has occurred: %v", err)
+		log.Fatalf("Dial error has occurred: %v", err)
 	}
 
 	client := api.NewConfigServiceClient(conn)
 	log.Printf("Processing client...")
 
 	if *configName != "" && *configType != "" {
-		log.Printf("Processing retrieveConfig...")
+		log.Printf("Processing retrieving config...")
 
 		err := retrieveConfig(configName, outPath, client)
 		if err != nil {
@@ -57,13 +53,10 @@ func main() {
 	}
 
 	if *configName == "" && *configType != "" {
-
 		err := retrieveConfigs(outPath, client)
 		if err != nil {
 			log.Fatalf("retrieveConfigs err : %v", err)
-
 		}
-
 	}
 	log.Printf("End retrieveConfig...")
 
