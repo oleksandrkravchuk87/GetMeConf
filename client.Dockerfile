@@ -8,21 +8,23 @@ ENV GOPATH=/go
 
 ENV PATH=$GOPATH/bin:$PATH
 
-RUN mkdir -p $GOPATH/src/client
-ADD client $GOPATH/src/client
+RUN mkdir -p $GOPATH/src/client \
+&& mkdir -p $GOPATH/src/client/out \
+&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/database \
+&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
 
-RUN mkdir -p $GOPATH/src/client/config
-ADD ./config $GOPATH/src/client/config
+ADD ./client $GOPATH/src/client
+ADD ./client/out $GOPATH/src/client/out
+ADD ./database $GOPATH/src/github.com/YAWAL/GetMeConf/database
+ADD ./api $GOPATH/src/github.com/YAWAL/GetMeConf/api
 
-RUN mkdir -p $GOPATH/src/client/config/in
-ADD ./config/in $GOPATH/src/client/config/in
-
-RUN mkdir -p $GOPATH/src/client/config/out
-ADD ./config/out $GOPATH/src/client/config/out
+ADD ./vendor $GOPATH/src/vendor
+ADD ./Gopkg.lock $GOPATH/src/
+ADD ./Gopkg.toml $GOPATH/src/
 
 WORKDIR $GOPATH/src/client
 
 RUN go build -o main .
 
-CMD ["/go/src/client/main", "-config-id", "mongodb.json", "-config-path", "/go/src/client/config/in"]
+CMD ["/go/src/client/main", "-config-name", "mydom", "-config-type", "mongodb", "outpath", "$GOPATH/src/client/out"]
 

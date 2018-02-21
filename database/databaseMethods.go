@@ -9,31 +9,26 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/YAWAL/GetMeConf/dataStructs"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"gopkg.in/gormigrate.v1"
 )
 
-var db *gorm.DB
-var factory map[string]dataStructs.PersistedData
+var factory map[string]PersistedData
 
 func initConfigDataMap() {
 	if factory != nil {
 		return
 	}
-	factory = map[string]dataStructs.PersistedData{
-		"mongodb":    dataStructs.PersistedData{ConfigType: new(dataStructs.Mongodb), IDField: "domain"},
-		"tempconfig": dataStructs.PersistedData{ConfigType: new(dataStructs.Tempconfig), IDField: "host"},
-		"tsconfig":   dataStructs.PersistedData{ConfigType: new(dataStructs.Tsconfig), IDField: "module"},
+	factory = map[string]PersistedData{
+		"mongodb":    PersistedData{ConfigType: new(Mongodb), IDField: "domain"},
+		"tempconfig": PersistedData{ConfigType: new(Tempconfig), IDField: "host"},
+		"tsconfig":   PersistedData{ConfigType: new(Tsconfig), IDField: "module"},
 	}
 }
 
 //InitPostgresDB initiates database connection using configuration file
-func InitPostgresDB(cfg PostgresConfig) (err error) {
-	if db != nil {
-		log.Printf("connection to postgres database already exists")
-		return nil
-	}
+func InitPostgresDB(cfg PostgresConfig) (db *gorm.DB, err error) {
 	dbInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.Dbhost, cfg.Dbport, cfg.DbUser, cfg.DbPassword, cfg.DbName)
 
@@ -41,28 +36,88 @@ func InitPostgresDB(cfg PostgresConfig) (err error) {
 
 	if err != nil {
 		log.Printf("error during connection to postgres database has occurred: %v", err)
-		return err
+		return nil, err
 	}
 	db.DB().SetMaxOpenConns(cfg.MaxOpenedConnectionsToDb)
 	db.DB().SetMaxIdleConns(cfg.MaxIdleConnectionsToDb)
 	db.DB().SetConnMaxLifetime(time.Minute * time.Duration(cfg.MbConnMaxLifetimeMinutes))
 	log.Printf("connection to postgres database has been established")
+
 	initConfigDataMap()
 
-	return nil
-}
-
-func GetAll(db *gorm.DB) ([]dataStructs.Mongodb, error) {
-	var results []dataStructs.Mongodb
-	err := db.Find(&results).Error
-	if err != nil {
+	if err = gormMigrate(db); err != nil {
+		log.Printf("error during migration: %v", err)
 		return nil, err
 	}
-	return results, nil
+
+	return db, nil
+}
+
+func gormMigrate(db *gorm.DB) error {
+
+	db.LogMode(true)
+	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
+		{
+			ID: "1",
+			Migrate: func(tx *gorm.DB) error {
+				type Mongodb struct {
+					gorm.Model
+					Domain  string
+					Mongodb bool
+					Host    string
+					Port    string
+				}
+				return tx.AutoMigrate(&Mongodb{}).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.DropTable("mongodbs").Error
+			},
+		},
+		{
+			ID: "2",
+			Migrate: func(tx *gorm.DB) error {
+				type Tsconfig struct {
+					gorm.Model
+					Module    string
+					Target    string
+					SourseMap bool
+					Exclude   int
+				}
+				return tx.AutoMigrate(&Tsconfig{}).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.DropTable("tsconfigs").Error
+			},
+		},
+		{
+			ID: "3",
+			Migrate: func(tx *gorm.DB) error {
+				type Tempconfig struct {
+					gorm.Model
+					RestApiRoot    string
+					Host           string
+					Port           string
+					Remoting       string
+					LegasyExplorer bool
+				}
+				return tx.AutoMigrate(&Tempconfig{}).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.DropTable("tempconfigs").Error
+			},
+		},
+	})
+
+	err := m.Migrate()
+	if err != nil {
+		log.Fatalf("could not migrate: %v", err)
+	}
+	log.Printf("Migration did run successfully")
+	return err
 }
 
 //GetConfigByNameFromDB(confName string, confType string) searches a config in database using the type of the config and a unique name
-func GetConfigByNameFromDB(confName string, confType string) (dataStructs.ConfigInterface, error) {
+func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (ConfigInterface, error) {
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
 	if !ok {
@@ -79,9 +134,9 @@ func GetConfigByNameFromDB(confName string, confType string) (dataStructs.Config
 	return result, nil
 }
 
-//GetMongoDBConfigs() searches for all Mongodb configs in database
-func GetMongoDBConfigs() ([]dataStructs.Mongodb, error) {
-	var confSlice []dataStructs.Mongodb
+//GetMongoDBConfigs(db *gorm.DB) searches for all Mongodb configs in database
+func GetMongoDBConfigs(db *gorm.DB) ([]Mongodb, error) {
+	var confSlice []Mongodb
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -89,9 +144,9 @@ func GetMongoDBConfigs() ([]dataStructs.Mongodb, error) {
 	return confSlice, nil
 }
 
-//GetTempConfigs() searches for all TempConfig in database
-func GetTempConfigs() ([]dataStructs.Tempconfig, error) {
-	var confSlice []dataStructs.Tempconfig
+//GetTempConfigs(db *gorm.DB) searches for all TempConfig in database
+func GetTempConfigs(db *gorm.DB) ([]Tempconfig, error) {
+	var confSlice []Tempconfig
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -99,9 +154,9 @@ func GetTempConfigs() ([]dataStructs.Tempconfig, error) {
 	return confSlice, nil
 }
 
-//GetTsconfigs() searches for all Tsconfigs in database
-func GetTsconfigs() ([]dataStructs.Tsconfig, error) {
-	var confSlice []dataStructs.Tsconfig
+//GetTsconfigs(db *gorm.DB) searches for all Tsconfigs in database
+func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
+	var confSlice []Tsconfig
 	err := db.Find(&confSlice).Error
 	if err != nil {
 		return nil, err

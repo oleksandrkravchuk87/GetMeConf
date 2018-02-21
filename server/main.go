@@ -13,6 +13,7 @@ import (
 
 	pb "github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
+	"github.com/jinzhu/gorm"
 	"github.com/patrickmn/go-cache"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -26,6 +27,7 @@ var (
 type configServer struct {
 	configCache *cache.Cache
 	mut         *sync.Mutex
+	db          *gorm.DB
 }
 
 //GetConfigByName returns one config in GetConfigResponce message
@@ -37,7 +39,7 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 		return configResponse.(*pb.GetConfigResponce), nil
 	}
 
-	res, err := database.GetConfigByNameFromDB(nameRequest.ConfigName, nameRequest.ConfigType)
+	res, err := database.GetConfigByNameFromDB(nameRequest.ConfigName, nameRequest.ConfigType, s.db)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +59,7 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 
 	switch typeRequest.ConfigType {
 	case "mongodb":
-		res, err := database.GetMongoDBConfigs()
+		res, err := database.GetMongoDBConfigs(s.db)
 		if err != nil {
 			return err
 		}
@@ -67,7 +69,7 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 			}
 		}
 	case "tempconfig":
-		res, err := database.GetTempConfigs()
+		res, err := database.GetTempConfigs(s.db)
 		if err != nil {
 			return err
 		}
@@ -77,7 +79,7 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 			}
 		}
 	case "tsconfig":
-		res, err := database.GetTsconfigs()
+		res, err := database.GetTsconfigs(s.db)
 		if err != nil {
 			return err
 		}
@@ -108,7 +110,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("cannot read config from file with error : %v", err)
 	}
-	if err = database.InitPostgresDB(*cfg); err != nil {
+	db, err := database.InitPostgresDB(*cfg)
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -136,7 +139,8 @@ func main() {
 
 	cache := cache.New(5*time.Minute, 10*time.Minute)
 
-	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: cache, mut: &sync.Mutex{}})
+	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: cache, mut: &sync.Mutex{}, db: db})
+	defer grpcServer.GracefulStop()
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Fatalf("filed to serve: %v", err)
