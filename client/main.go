@@ -6,15 +6,16 @@ import (
 	"log"
 	"path/filepath"
 
+	"encoding/json"
+	"io"
+
 	"github.com/YAWAL/GetMeConf/api"
+	"github.com/YAWAL/GetMeConf/database"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"io"
-	"github.com/YAWAL/GetMeConf/database"
-	"encoding/json"
 )
 
-const address = "localhost:8081"
+const address = "10.128.77.141:8081"
 
 var (
 	//client     api.ConfigServiceClient
@@ -35,7 +36,7 @@ func main() {
 	log.Printf("Start checking input data:\n Config name: %v\n Config type : %v\n Output path: %v", *configName, *configType, *outPath)
 	log.Printf("Processing ...")
 
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	conn.GetState()
 	defer conn.Close()
 	log.Printf("State: %v", conn.GetState())
