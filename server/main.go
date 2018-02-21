@@ -21,7 +21,7 @@ import (
 
 var (
 	host = flag.String("host", "localhost", "Server host")
-	port = flag.Int("port", 8081, "Server port")
+	port = flag.Int("port", 3000, "Server port")
 )
 
 type configServer struct {

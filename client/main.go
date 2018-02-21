@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const address = "10.128.77.141:8081"
+const address = "localhost:3000"
 
 var (
 	//client     api.ConfigServiceClient
@@ -68,8 +68,8 @@ func main() {
 	}
 	log.Printf("End retrieveConfig...")
 
-	for true {
-	}
+	//for true {
+	//}
 }
 
 func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient) error {

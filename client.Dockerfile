@@ -26,5 +26,5 @@ WORKDIR $GOPATH/src/client
 
 RUN go build -o main .
 
-CMD ["/go/src/client/main", "-config-name", "mydom", "-config-type", "mongodb", "outpath", "$GOPATH/src/client/out"]
+CMD ["/go/src/restClient/main"]
 

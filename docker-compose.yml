@@ -8,15 +8,25 @@ services:
   networks:
    - conf_net
   ports:
-   - "127.0.0.1:8081:8081"
+   - "127.0.0.1:3000:3000"
   depends_on:
    - db
 
 
+# clientapp:
+#  build:
+#   context: "."
+#   dockerfile: "client/client.server.Dockerfile"
+#  networks:
+#   - conf_net
+#  depends_on:
+#   - serverapp
+#   - db
+
  clientapp:
   build:
    context: "."
-   dockerfile: "client.Dockerfile"
+   dockerfile: "restClient.server.Dockerfile"
   networks:
    - conf_net
   depends_on:
