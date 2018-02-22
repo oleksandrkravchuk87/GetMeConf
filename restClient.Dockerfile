@@ -8,6 +8,12 @@ ENV GOPATH=/go
 
 ENV PATH=$GOPATH/bin:$PATH
 
+ENV PORT=8080
+
+ENV SERVICEHOST=getmeconf_serverapp_1
+
+ENV SERVICEPORT=3000
+
 RUN mkdir -p $GOPATH/src/restClient \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/database \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
@@ -24,6 +30,6 @@ WORKDIR $GOPATH/src/restClient
 
 RUN go build -o main
 
-CMD ["/go/src/restClient/main", "-port", "8080", "-serviceHost", "getmeconf_serverapp_1", "-servicePort", "3000"]
+CMD ["/go/src/restClient/main"]
 
 EXPOSE 8080

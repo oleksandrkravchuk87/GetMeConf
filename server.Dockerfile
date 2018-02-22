@@ -8,6 +8,8 @@ ENV GOPATH=/go
 
 ENV PATH=$GOPATH/bin:$PATH
 
+ENV PORT=3000
+
 RUN mkdir -p $GOPATH/src/server \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/database \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api

@@ -2,15 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"log"
-
-	"net/http"
-
-	"io"
-
-	"flag"
-
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 
 	"github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
@@ -19,20 +14,31 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	port        = flag.String("port", "8080", "Server port")
-	serviceHost = flag.String("serviceHost", "localhost", "Server host")
-	servicePort = flag.String("servicePort", "3000", "Server port")
-)
-
 func main() {
-	flag.Parse()
-	address := fmt.Sprintf("%s:%s", *serviceHost, *servicePort)
+
+	port := "8080"
+
+	serviceHost := "localhost"
+	servicePort := "3000"
+
+	//port := os.Getenv("PORT")
+	//if port == "" {
+	//	log.Fatalf("port is not set")
+	//}
+	//serviceHost := os.Getenv("SERVICEHOST")
+	//if port == "" {
+	//	log.Fatalf("service host is not set")
+	//}
+	//servicePort := os.Getenv("SERVICEPORT")
+	//if port == "" {
+	//	log.Fatalf("service port is not set")
+	//}
+
+	address := fmt.Sprintf("%s:%s", serviceHost, servicePort)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	conn.GetState()
-	defer conn.Close()
 	log.Printf("State: %v", conn.GetState())
-
+	defer conn.Close()
 	if err != nil {
 		log.Fatalf("DialContext error has occurred: %v", err)
 	}
@@ -41,8 +47,8 @@ func main() {
 	log.Printf("Processing client...")
 
 	//http server
-	hs := gin.Default()
-	hs.GET("/getConfig/:type/:name", func(c *gin.Context) {
+	router := gin.Default()
+	router.GET("/getConfig/:type/:name", func(c *gin.Context) {
 		configType := c.Param("type")
 		configName := c.Param("name")
 		resultConfig, err := retrieveConfig(&configName, &configType, client)
@@ -55,7 +61,7 @@ func main() {
 		})
 	})
 
-	hs.GET("/getConfig/:type/", func(c *gin.Context) {
+	router.GET("/getConfig/:type/", func(c *gin.Context) {
 		configType := c.Param("type")
 		resultConfig, err := retrieveConfigs(&configType, client)
 		if err != nil {
@@ -67,7 +73,18 @@ func main() {
 		})
 	})
 
-	if err := hs.Run(":" + *port); err != nil {
+	router.GET("/info", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"ststus": http.StatusText(http.StatusOK),
+		})
+	})
+
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: router,
+	}
+	defer srv.Shutdown(context.Background())
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("filed to run server: %v", err)
 	}
 

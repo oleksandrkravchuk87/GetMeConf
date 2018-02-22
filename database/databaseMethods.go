@@ -123,9 +123,6 @@ func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (Confi
 	if !ok {
 		return nil, errors.New("unexpected config type")
 	}
-	if !db.HasTable(configStruct.ConfigType) {
-		return nil, errors.New("could not find table " + cType)
-	}
 	result := configStruct.ConfigType
 	err := db.Where(configStruct.IDField+" = ?", confName).Find(result).Error
 	if err != nil {

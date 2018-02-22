@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -17,11 +16,6 @@ import (
 	"github.com/patrickmn/go-cache"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-)
-
-var (
-	host = flag.String("host", "localhost", "Server host")
-	port = flag.String("port", "3000", "Server port")
 )
 
 type configServer struct {
@@ -104,7 +98,11 @@ func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTyp
 }
 
 func main() {
-	flag.Parse()
+	port := "3000"
+	//port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatalf("port is not set")
+	}
 
 	cfg, err := database.ReadConfig()
 	if err != nil {
@@ -115,25 +113,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//Secure
-	//cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
-	//if err != nil {
-	//	log.Fatal("filed to load key pair: ", err)
-	//}
-	//
-	//serverConf := &tls.Config{Certificates: []tls.Certificate{cer}}
-	//lis, err := tls.Listen("tcp", fmt.Sprintf("%s:%d", *host, *port), serverConf)
-	//if err != nil {
-	//	log.Fatal("filed to listen: ", err)
-	//}
-	//Insecure
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	log.Printf("server started at %s:%s", *host, *port)
+	log.Printf("server started at :%s", port)
 
 	grpcServer := grpc.NewServer()
 
