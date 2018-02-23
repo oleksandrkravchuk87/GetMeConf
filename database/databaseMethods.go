@@ -58,7 +58,7 @@ func gormMigrate(db *gorm.DB) error {
 	db.LogMode(true)
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
-			ID: "1",
+			ID: "Initial",
 			Migrate: func(tx *gorm.DB) error {
 				type Mongodb struct {
 					gorm.Model
@@ -67,15 +67,6 @@ func gormMigrate(db *gorm.DB) error {
 					Host    string
 					Port    string
 				}
-				return tx.AutoMigrate(&Mongodb{}).Error
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("mongodbs").Error
-			},
-		},
-		{
-			ID: "2",
-			Migrate: func(tx *gorm.DB) error {
 				type Tsconfig struct {
 					gorm.Model
 					Module    string
@@ -83,15 +74,6 @@ func gormMigrate(db *gorm.DB) error {
 					SourseMap bool
 					Exclude   int
 				}
-				return tx.AutoMigrate(&Tsconfig{}).Error
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("tsconfigs").Error
-			},
-		},
-		{
-			ID: "3",
-			Migrate: func(tx *gorm.DB) error {
 				type Tempconfig struct {
 					gorm.Model
 					RestApiRoot    string
@@ -100,10 +82,10 @@ func gormMigrate(db *gorm.DB) error {
 					Remoting       string
 					LegasyExplorer bool
 				}
-				return tx.AutoMigrate(&Tempconfig{}).Error
+				return tx.AutoMigrate(&Mongodb{}, &Tsconfig{}, &Tempconfig{}).Error
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("tempconfigs").Error
+				return tx.DropTable("mongodbs", "tsconfigs", "tempconfigs").Error
 			},
 		},
 	})

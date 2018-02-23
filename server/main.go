@@ -24,6 +24,8 @@ type configServer struct {
 	db          *gorm.DB
 }
 
+var databaseGetConfigByNameFromDB = database.GetConfigByNameFromDB
+
 //GetConfigByName returns one config in GetConfigResponce message
 func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetConfigByNameRequest) (*pb.GetConfigResponce, error) {
 	s.mut.Lock()
@@ -33,7 +35,7 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 		return configResponse.(*pb.GetConfigResponce), nil
 	}
 
-	res, err := database.GetConfigByNameFromDB(nameRequest.ConfigName, nameRequest.ConfigType, s.db)
+	res, err := databaseGetConfigByNameFromDB(nameRequest.ConfigName, nameRequest.ConfigType, s.db)
 	if err != nil {
 		return nil, err
 	}

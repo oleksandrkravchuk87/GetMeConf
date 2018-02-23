@@ -1,14 +1,14 @@
-  dbhost: "horton.elephantsql.com"
-  dbport: "5432"
-  dbUser: "dlxifkbx"
-  dbPassword: "L7Cey-ucPY4L3T6VFlFdNykNE4jO0VjV"
-  dbName: "dlxifkbx"
-
-#  dbhost: "getmeconf_db_1"
+#  dbhost: "horton.elephantsql.com"
 #  dbport: "5432"
-#  dbUser: "postgres"
-#  dbPassword: "root"
-#  dbName: "postgres"
+#  dbUser: "dlxifkbx"
+#  dbPassword: "L7Cey-ucPY4L3T6VFlFdNykNE4jO0VjV"
+#  dbName: "dlxifkbx"
+
+  dbhost: "getmeconf_db_1"
+  dbport: "5432"
+  dbUser: "postgres"
+  dbPassword: "root"
+  dbName: "postgres"
 
   maxOpenedConnectionsToDb: 5
   maxIdleConnectionsToDb: 0
