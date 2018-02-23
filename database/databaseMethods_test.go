@@ -49,6 +49,18 @@ func TestGetMongoDBConfigs(t *testing.T) {
 	assert.Equal(t, expConfig, returnedMongoConfigs)
 }
 
+func TestGetMongoDBConfigs_withDBError(t *testing.T) {
+	m, db, _ := newDB()
+	expectedError := errors.New("db error")
+	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\"")).WillReturnError(expectedError)
+	_, returnedErr := GetMongoDBConfigs(db)
+
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+
+}
+
 func TestGetTsconfigs(t *testing.T) {
 	m, db, _ := newDB()
 	var fieldNames = []string{"module", "target", "source_map", "excluding"}
@@ -64,6 +76,17 @@ func TestGetTsconfigs(t *testing.T) {
 	assert.Equal(t, expConfig, returnedTsConfigs)
 }
 
+func TestGetTsconfigs_withDBError(t *testing.T) {
+	m, db, _ := newDB()
+	expectedError := errors.New("db error")
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\"")).WillReturnError(expectedError)
+	_, returnedErr := GetTsconfigs(db)
+
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
 func TestGetTempConfigs(t *testing.T) {
 	m, db, _ := newDB()
 	var fieldNames = []string{"rest_api_root", "host", "port", "remoting", "legasy_explorer"}
@@ -77,6 +100,17 @@ func TestGetTempConfigs(t *testing.T) {
 		t.Error("error during unit testing: ", err)
 	}
 	assert.Equal(t, expConfig, returnedTempConfigs)
+}
+
+func TestGetTempConfigs_withDBError(t *testing.T) {
+	m, db, _ := newDB()
+	expectedError := errors.New("db error")
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\"")).WillReturnError(expectedError)
+	_, returnedErr := GetTempConfigs(db)
+
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
 }
 
 func TestGetConfigByNameFromDB(t *testing.T) {
@@ -98,5 +132,18 @@ func TestGetConfigByNameFromDB(t *testing.T) {
 	_, err = GetConfigByNameFromDB(testName, anotherTestType, db)
 	if assert.Error(t, err) {
 		assert.Equal(t, errors.New("unexpected config type"), err)
+	}
+}
+
+func TestGetConfigByNameFromDB_withDBError(t *testing.T) {
+	m, db, _ := newDB()
+	initConfigDataMap()
+	testType := "mongodb"
+	testName := "testDomain"
+	expectedError := errors.New("db error")
+	m.ExpectQuery(formatRequest("SELECT * FROM \"" + testType + "s\" WHERE (domain = $1)")).WillReturnError(expectedError)
+	_, returnedErr := GetConfigByNameFromDB(testName, testType, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
 	}
 }

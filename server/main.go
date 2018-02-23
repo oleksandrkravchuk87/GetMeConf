@@ -10,6 +10,8 @@ import (
 
 	"errors"
 
+	"os"
+
 	pb "github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/jinzhu/gorm"
@@ -25,6 +27,9 @@ type configServer struct {
 }
 
 var databaseGetConfigByNameFromDB = database.GetConfigByNameFromDB
+var databaseGetMongoDBConfigs = database.GetMongoDBConfigs
+var databaseGetTempConfigs = database.GetTempConfigs
+var databaseGetTsconfigs = database.GetTsconfigs
 
 //GetConfigByName returns one config in GetConfigResponce message
 func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetConfigByNameRequest) (*pb.GetConfigResponce, error) {
@@ -55,34 +60,40 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 
 	switch typeRequest.ConfigType {
 	case "mongodb":
-		res, err := database.GetMongoDBConfigs(s.db)
+		res, err := databaseGetMongoDBConfigs(s.db)
 		if err != nil {
 			return err
 		}
 		for _, v := range res {
-			if err = marshalAndSend(v, stream); err != nil {
+			byteRes, err := json.Marshal(v)
+			if err != nil {
 				return err
 			}
+			stream.Send(&pb.GetConfigResponce{Config: byteRes})
 		}
 	case "tempconfig":
-		res, err := database.GetTempConfigs(s.db)
+		res, err := databaseGetTempConfigs(s.db)
 		if err != nil {
 			return err
 		}
 		for _, v := range res {
-			if err = marshalAndSend(v, stream); err != nil {
+			byteRes, err := json.Marshal(v)
+			if err != nil {
 				return err
 			}
+			stream.Send(&pb.GetConfigResponce{Config: byteRes})
 		}
 	case "tsconfig":
-		res, err := database.GetTsconfigs(s.db)
+		res, err := databaseGetTsconfigs(s.db)
 		if err != nil {
 			return err
 		}
 		for _, v := range res {
-			if err = marshalAndSend(v, stream); err != nil {
+			byteRes, err := json.Marshal(v)
+			if err != nil {
 				return err
 			}
+			stream.Send(&pb.GetConfigResponce{Config: byteRes})
 		}
 	default:
 		log.Print("unexpacted type")
@@ -100,8 +111,8 @@ func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTyp
 }
 
 func main() {
-	port := "3000"
-	//port := os.Getenv("PORT")
+
+	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatalf("port is not set")
 	}

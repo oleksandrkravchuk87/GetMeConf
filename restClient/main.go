@@ -18,11 +18,6 @@ import (
 
 func main() {
 
-	//port := "8080"
-	//
-	//serviceHost := "localhost"
-	//servicePort := "3000"
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatalf("port is not set")
