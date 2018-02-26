@@ -32,4 +32,4 @@ RUN go build -o main
 
 CMD ["/go/src/restClient/main"]
 
-EXPOSE 8080
+EXPOSE $PORT

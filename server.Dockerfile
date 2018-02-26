@@ -29,4 +29,4 @@ RUN go build -o main .
 
 CMD ["/go/src/server/main"]
 
-EXPOSE 3000
+EXPOSE $PORT
