@@ -7,7 +7,44 @@ import (
 	"github.com/YAWAL/GetMeConf/database"
 	"golang.org/x/net/context"
 	"github.com/YAWAL/GetMeConf/api"
+	"google.golang.org/grpc"
+
 )
+
+func ConfigRetriever(){
+	if *configName == "" && *configType == "" {
+		log.Fatal("Can't proccess => config name and config type are empty")
+	}
+
+	log.Printf("Start checking input data:\n Config name: %v\n Config type : %v\n Output path: %v\nProcessing ...", *configName, *configType, *outPath)
+
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	defer conn.Close()
+	log.Printf("State: %v", conn.GetState())
+
+	if err != nil {
+		log.Fatalf("Dial error has occurred: %v", err)
+	}
+
+	client := api.NewConfigServiceClient(conn)
+
+	if *configName != "" && *configType != "" {
+		log.Printf("Processing retrieving config...")
+
+		err := retrieveConfig(configName, outPath, client)
+		if err != nil {
+			log.Fatalf("retrieveConfig err: %v", err)
+		}
+	}
+
+	if *configName == "" && *configType != "" {
+		err := retrieveConfigs(client)
+		if err != nil {
+			log.Fatalf("retrieveConfigs err : %v", err)
+		}
+	}
+	log.Printf("End retrieving config.")
+}
 
 func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient) error {
 	conf, err := client.GetConfigByName(context.Background(), &api.GetConfigByNameRequest{ConfigName: *configName, ConfigType: *configType})
