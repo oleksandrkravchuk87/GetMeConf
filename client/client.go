@@ -20,7 +20,7 @@ func main() {
 	flag.Parse()
 
 	log.Println("Processing client...Reading flags")
-	log.Printf("Command: %v ",*command)
+	log.Printf("Command: %v ", *command)
 
 	switch *command {
 	case "create":
@@ -33,7 +33,7 @@ func main() {
 		//TODO implement
 
 	case "delete":
-
+		deleteConfig(*configType, *configName)
 	default:
 		log.Fatalf("Cant parse command flag. Valid command flags are: create, read, update, delete")
 
