@@ -23,9 +23,9 @@ func TestGetConfigByName(t *testing.T) {
 	databaseGetConfigByNameFromDB = func(confName string, confType string, db *gorm.DB) (database.ConfigInterface, error) {
 		return database.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}, nil
 	}
-	cache := cache.New(5*time.Minute, 10*time.Minute)
+	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
-	mock.configCache = cache
+	mock.configCache = configCache
 	mock.mut = &sync.Mutex{}
 	res, err := mock.GetConfigByName(context.Background(), &pb.GetConfigByNameRequest{ConfigType: "mongodb", ConfigName: "testName"})
 
@@ -53,9 +53,9 @@ func TestGetConfigByName(t *testing.T) {
 func TestGetConfigByName_FromCache(t *testing.T) {
 	testName := "testName"
 	testConf := database.Mongodb{Domain: testName, Mongodb: true, Host: "testHost", Port: "testPort"}
-	cache := cache.New(5*time.Minute, 10*time.Minute)
+	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
-	mock.configCache = cache
+	mock.configCache = configCache
 	mock.mut = &sync.Mutex{}
 	byteRes, err := json.Marshal(testConf)
 	if err != nil {
@@ -148,8 +148,8 @@ type mockConfigServer struct {
 	Results []*pb.GetConfigResponce
 }
 
-func (_m *mockConfigServer) Send(response *pb.GetConfigResponce) error {
-	_m.Results = append(_m.Results, response)
+func (mcs *mockConfigServer) Send(response *pb.GetConfigResponce) error {
+	mcs.Results = append(mcs.Results, response)
 	return nil
 }
 
@@ -167,16 +167,16 @@ func TestCreateConfig(t *testing.T) {
 		return "OK", nil
 
 	}
-	cache := cache.New(5*time.Minute, 10*time.Minute)
+	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
-	mock.configCache = cache
+	mock.configCache = configCache
 	mock.mut = &sync.Mutex{}
 
 	res, err := mock.CreateConfig(context.Background(), &pb.Config{ConfigType: "testType", Config: []byte("testConfig")})
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
-	expectedResponse := &pb.Responce{"OK"}
+	expectedResponse := &pb.Responce{Status: "OK"}
 	assert.Equal(t, expectedResponse, res)
 
 	expectedError := errors.New("error from database querying")
@@ -196,16 +196,16 @@ func TestDeleteConfig(t *testing.T) {
 	databaseDeleteConfigFromDB = func(configName, confType string, db *gorm.DB) (string, error) {
 		return "OK", nil
 	}
-	cache := cache.New(5*time.Minute, 10*time.Minute)
+	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
-	mock.configCache = cache
+	mock.configCache = configCache
 	mock.mut = &sync.Mutex{}
 
 	res, err := mock.DeleteConfig(context.Background(), &pb.DeleteConfigRequest{ConfigType: "testType", ConfigName: "testName"})
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
-	expectedResponse := &pb.Responce{"OK"}
+	expectedResponse := &pb.Responce{Status: "OK"}
 	assert.Equal(t, expectedResponse, res)
 
 	expectedError := errors.New("error from database querying")

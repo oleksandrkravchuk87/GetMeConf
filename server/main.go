@@ -102,6 +102,7 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 	return nil
 }
 
+//CreateConfig adds new config record to the database
 func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb.Responce, error) {
 	s.mut.Lock()
 	s.configCache.Flush()
@@ -114,6 +115,7 @@ func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb
 	return &pb.Responce{Status: response}, nil
 }
 
+//DeleteConfig removes config records from the database. If successful, returns the amount of deleted records in a status message of the response structure
 func (s *configServer) DeleteConfig(ctx context.Context, delConfigRequest *pb.DeleteConfigRequest) (*pb.Responce, error) {
 	s.mut.Lock()
 	s.configCache.Flush()
@@ -146,7 +148,7 @@ func main() {
 	}
 	db, err := database.InitPostgresDB(*cfg)
 	if err != nil {
-		log.Fatal("failed to init postgres db: %v", err)
+		log.Fatalf("failed to init postgres db: %v", err)
 	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))

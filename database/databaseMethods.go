@@ -145,7 +145,7 @@ func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
 	return confSlice, nil
 }
 
-//SaveConfigToDB(confType string, config []byte, db *gorm.DB) saves new config record to the database
+//SaveConfigToDB saves new config record to the database
 func SaveConfigToDB(confType string, config []byte, db *gorm.DB) (string, error) {
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
@@ -166,7 +166,7 @@ func SaveConfigToDB(confType string, config []byte, db *gorm.DB) (string, error)
 	return "OK", nil
 }
 
-//DeleteConfigFromDB
+//DeleteConfigFromDB removes config record from database
 func DeleteConfigFromDB(confName, confType string, db *gorm.DB) (string, error) {
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
