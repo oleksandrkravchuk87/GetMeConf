@@ -5,16 +5,12 @@ import (
 	"os"
 	"log"
 	"github.com/YAWAL/GetMeConf/database"
-	"bytes"
-	"encoding/binary"
 	"strconv"
 	"google.golang.org/grpc"
 	"github.com/YAWAL/GetMeConf/api"
 	"golang.org/x/net/context"
+	"encoding/json"
 )
-
-//var fileName string
-//var fileName = "mongo.csv"
 
 func readConfig(fileName string) ([][]string) {
 	file, err := os.OpenFile(fileName, os.O_RDONLY, 0666)
@@ -33,13 +29,12 @@ func readConfig(fileName string) ([][]string) {
 }
 
 func createByteConfig(fileName string) []byte {
-	var structBytes bytes.Buffer
 	records := readConfig(fileName)
-
 	switch fileName {
 	case "mongo.csv":
 		var mongocnf database.Mongodb
 		mongocnf.Domain = records[0][0]
+
 		if records[0][1] != "true" && records[0][1] != "false" {
 			log.Fatalf("field Mongodb should be true or false, but is: %v", records[0][1])
 			return nil
@@ -52,10 +47,10 @@ func createByteConfig(fileName string) []byte {
 		}
 		mongocnf.Host = records[0][2]
 		mongocnf.Port = records[0][3]
-		if err := binary.Write(&structBytes, binary.BigEndian, mongocnf); err == nil {
-			return structBytes.Bytes()
+		if bytesMongo, err := json.Marshal(mongocnf); err == nil {
+			return bytesMongo
 		} else {
-			log.Fatalf("Error during converting Mongodb structure to []byte has occurred: %v", err)
+			log.Printf("Error during converting Mongodb structure to []byte has occurred: %v", err)
 			return nil
 		}
 
@@ -75,10 +70,10 @@ func createByteConfig(fileName string) []byte {
 		if records[0][4] == "false" {
 			tempcnf.LegasyExplorer = false
 		}
-		if err := binary.Write(&structBytes, binary.BigEndian, tempcnf); err == nil {
-			return structBytes.Bytes()
+		if bytesTempcnf, err := json.Marshal(tempcnf); err == nil {
+			return bytesTempcnf
 		} else {
-			log.Fatalf("Error during converting Tempconfig structure to []byte has occurred: %v", err)
+			log.Printf("Error during converting Tempconfig structure to []byte has occurred: %v", err)
 			return nil
 		}
 	case "tscnf.csv":
@@ -100,19 +95,19 @@ func createByteConfig(fileName string) []byte {
 			log.Fatalf("field Excluding should be integer, but is: %t", records[0][3])
 		}
 		tscnf.Excluding = excluding
-		if err := binary.Write(&structBytes, binary.BigEndian, tscnf); err == nil {
-			return structBytes.Bytes()
+		if bytesTscnf, err := json.Marshal(tscnf); err == nil {
+			return bytesTscnf
 		} else {
 			log.Printf("Error during converting Tsconfig structure to []byte has occurred: %v", err)
 			return nil
 		}
 	default:
-		log.Fatalf("Cant fing file: %v", fileName)
+		log.Fatalf("Cant find file: %v", fileName)
 	}
 	return nil
 }
 
-func sentConfigToServer(fileName string){
+func sentConfigToServer(fileName string) {
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	defer conn.Close()
@@ -120,18 +115,13 @@ func sentConfigToServer(fileName string){
 	if err != nil {
 		log.Fatalf("Dial error has occurred: %v", err)
 	}
-
 	client := api.NewConfigServiceClient(conn)
-
 	config := createByteConfig(fileName)
-
-	resp, err := client.CreateConfig(context.Background(),&api.Config{Config:config})
-	if resp.Status != "ok"{
+	resp, err := client.CreateConfig(context.Background(), &api.Config{Config: config, ConfigType: *configType})
+	if err != nil {
+		log.Printf("Error during client.CreateConfig has occurred: %v", err)
+	}
+	if resp.Status != "OK" {
 		log.Printf("Error during creating config has occurred: %v responce status: %v", err, resp.Status)
 	}
-	if err != nil {
-		log.Printf("Error during creating config has occurred: %v", err)
-	}
-
-
 }

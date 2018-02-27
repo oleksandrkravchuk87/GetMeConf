@@ -23,7 +23,7 @@ func main() {
 
 	switch *command {
 	case "create":
-		log.Printf("Command: %v /n Config name: %v /n Config type: %v", *command, *configName, *configType)
+		log.Printf("Command: %v \n Config type: %v", *command, *configType)
 		sentConfigToServer(*fileName)
 
 	case "read":
