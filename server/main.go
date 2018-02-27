@@ -10,8 +10,6 @@ import (
 
 	"errors"
 
-	"os"
-
 	pb "github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/jinzhu/gorm"
@@ -30,6 +28,8 @@ var databaseGetConfigByNameFromDB = database.GetConfigByNameFromDB
 var databaseGetMongoDBConfigs = database.GetMongoDBConfigs
 var databaseGetTempConfigs = database.GetTempConfigs
 var databaseGetTsconfigs = database.GetTsconfigs
+var databaseSaveConfigToDB = database.SaveConfigToDB
+var databaseDeleteConfigFromDB = database.DeleteConfigFromDB
 
 //GetConfigByName returns one config in GetConfigResponce message
 func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetConfigByNameRequest) (*pb.GetConfigResponce, error) {
@@ -57,7 +57,6 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 
 //GetConfigByName streams configs as GetConfigResponce messages
 func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest, stream pb.ConfigService_GetConfigsByTypeServer) error {
-
 	switch typeRequest.ConfigType {
 	case "mongodb":
 		res, err := databaseGetMongoDBConfigs(s.db)
@@ -102,6 +101,29 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 	return nil
 }
 
+func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb.Responce, error) {
+	s.mut.Lock()
+	s.configCache.Flush()
+	s.mut.Unlock()
+	fmt.Println("main", config)
+	response, err := databaseSaveConfigToDB(config.ConfigType, config.Config, s.db)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.Responce{response}, nil
+}
+
+func (s *configServer) DeleteConfig(ctx context.Context, delConfigRequest *pb.DeleteConfigRequest) (*pb.Responce, error) {
+	s.mut.Lock()
+	s.configCache.Flush()
+	s.mut.Unlock()
+	response, err := databaseDeleteConfigFromDB(delConfigRequest.ConfigName, delConfigRequest.ConfigType, s.db)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.Responce{response}, nil
+}
+
 func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTypeServer) error {
 	byteRes, err := json.Marshal(results)
 	if err != nil {
@@ -112,7 +134,8 @@ func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTyp
 
 func main() {
 
-	port := os.Getenv("PORT")
+	port := "3000"
+	//port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatalf("port is not set")
 	}

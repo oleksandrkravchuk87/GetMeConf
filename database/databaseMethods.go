@@ -9,6 +9,8 @@ import (
 	"errors"
 	"strings"
 
+	"encoding/json"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"gopkg.in/gormigrate.v1"
@@ -141,6 +143,42 @@ func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
 		return nil, err
 	}
 	return confSlice, nil
+}
+
+//SaveConfigToDB(confType string, config []byte, db *gorm.DB) saves new config record to the database
+func SaveConfigToDB(confType string, config []byte, db *gorm.DB) (string, error) {
+	cType := strings.ToLower(confType)
+	configStruct, ok := factory[cType]
+	if !ok {
+		return "", errors.New("unexpected config type")
+	}
+	configTypeStr := configStruct.ConfigType
+	err := json.Unmarshal(config, configTypeStr)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Create(configTypeStr).Error
+	if err != nil {
+		log.Printf("error during saving to database: %v", err)
+		return "", err
+	}
+	return "config was added", nil
+}
+
+//DeleteConfigFromDB
+func DeleteConfigFromDB(confName, confType string, db *gorm.DB) (string, error) {
+	cType := strings.ToLower(confType)
+	configStruct, ok := factory[cType]
+	if !ok {
+		return "", errors.New("unexpected config type")
+	}
+	result := configStruct.ConfigType
+	rowsAffected := db.Delete(result, configStruct.IDField+" = ?", confName).RowsAffected
+	if rowsAffected < 1 {
+		return "", errors.New("could not delete from database")
+	}
+	return fmt.Sprintf("deleted %d rows", rowsAffected), nil
 }
 
 //-----------------------------------------------------
