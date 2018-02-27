@@ -12,7 +12,7 @@ var (
 	configName = flag.String("config-name", "", "config name")
 	configType = flag.String("config-type", "", "config type")
 	outPath    = flag.String("outpath", "", "output path for config file")
-	fileName = flag.String("file-name","","config file's name")
+	fileName   = flag.String("file-name", "", "config file's name")
 )
 
 func main() {

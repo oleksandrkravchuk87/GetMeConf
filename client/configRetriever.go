@@ -103,7 +103,7 @@ func retrieveConfigs(client api.ConfigServiceClient) error {
 			WriteFile(config.Config, fileName, *outPath)
 
 		default:
-			log.Fatalf("Such config: %v does not exist", *configType)
+			log.Fatalf("Config: %v does not exist", *configType)
 		}
 	}
 	return nil
