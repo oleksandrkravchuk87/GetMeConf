@@ -59,10 +59,8 @@ func main() {
 			log.Fatalf("retrieveConfigs err : %v", err)
 		}
 	}
-	log.Printf("End retrieveConfig...")
+	log.Printf("End retrieving config.")
 
-	//for true {
-	//}
 }
 
 func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient) error {
