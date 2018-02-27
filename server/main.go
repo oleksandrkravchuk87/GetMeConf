@@ -39,7 +39,6 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 	if found {
 		return configResponse.(*pb.GetConfigResponce), nil
 	}
-
 	res, err := databaseGetConfigByNameFromDB(nameRequest.ConfigName, nameRequest.ConfigType, s.db)
 	if err != nil {
 		return nil, err
