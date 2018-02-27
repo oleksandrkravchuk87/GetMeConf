@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"fmt"
+
 	pb "github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/jinzhu/gorm"
@@ -158,4 +160,16 @@ func TestMarshalAndSend(t *testing.T) {
 	testConfig := database.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}
 	_ = marshalAndSend(testConfig, mock)
 	assert.Equal(t, 1, len(mock.Results), "expected to contain 1 item")
+}
+
+func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb.Responce, error) {
+	s.mut.Lock()
+	s.configCache.Flush()
+	s.mut.Unlock()
+	fmt.Println("main", config)
+	response, err := database.SaveConfigToDB(config.ConfigType, config.Config, s.db)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.Responce{response}, nil
 }

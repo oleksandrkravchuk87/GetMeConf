@@ -10,6 +10,7 @@ import (
 
 	"errors"
 
+	"github.com/gin-gonic/gin/json"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
@@ -146,4 +147,36 @@ func TestGetConfigByNameFromDB_withDBError(t *testing.T) {
 	if assert.Error(t, returnedErr) {
 		assert.Equal(t, expectedError, returnedErr)
 	}
+}
+
+func TestSaveConfigToDB(t *testing.T) {
+	m, db, _ := newDB()
+	initConfigDataMap()
+	testType := "mongodb"
+	config := Mongodb{"testDomain", true, "testHost", "8080"}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectExec(formatRequest("INSERT INTO \"mongodbs\" (\"domain\",\"mongodb\",\"host\",\"port\") VALUES ($1,$2,$3,$4) RETURNING \"mongodbs\".*")).
+		WithArgs("testDomain", true, "testHost", "8080").
+		WillReturnResult(sqlmock.NewResult(0, 1))
+		//WillReturnError(errors.New("db error"))
+	_, returnedErr := SaveConfigToDB(testType, configBytes, db)
+	expectedError := errors.New("db error")
+
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestDeleteConfigFromDB(t *testing.T) {
+	m, db, _ := newDB()
+	initConfigDataMap()
+	testType := "mongodb"
+	testID := "testID"
+	m.ExpectExec(formatRequest("DELETE FROM \"" + testType + "s\" WHERE (domain = $1)")).
+		WithArgs("testID").WillReturnResult(sqlmock.NewResult(0, 1))
+	res, err := DeleteConfigFromDB(testID, testType, db)
+	if err != nil {
+		t.Error("error during unit testing: ", err)
+	}
+	assert.Equal(t, "deleted 1 rows", res)
 }

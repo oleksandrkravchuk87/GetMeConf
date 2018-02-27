@@ -7,29 +7,36 @@ import (
 	"log"
 	"net/http"
 
-	"os"
-
 	"github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
+type ConfigRecord struct {
+	Config []byte `json:"config"`
+}
+
 func main() {
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatalf("port is not set")
-	}
-	serviceHost := os.Getenv("SERVICEHOST")
-	if port == "" {
-		log.Fatalf("service host is not set")
-	}
-	servicePort := os.Getenv("SERVICEPORT")
-	if port == "" {
-		log.Fatalf("service port is not set")
-	}
+	port := "8080"
+	serviceHost := "localhost"
+	servicePort := "3000"
+
+	//port := os.Getenv("PORT")
+	//if port == "" {
+	//	log.Fatalf("port is not set")
+	//}
+	//serviceHost := os.Getenv("SERVICEHOST")
+	//if port == "" {
+	//	log.Fatalf("service host is not set")
+	//}
+	//servicePort := os.Getenv("SERVICEPORT")
+	//if servicePort == "" {
+	//	log.Fatalf("service port is not set")
+	//}
 
 	address := fmt.Sprintf("%s:%s", serviceHost, servicePort)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
@@ -58,7 +65,7 @@ func main() {
 		})
 	})
 
-	router.GET("/getConfig/:type/", func(c *gin.Context) {
+	router.GET("/getConfig/:type", func(c *gin.Context) {
 		configType := c.Param("type")
 		resultConfig, err := retrieveConfigs(&configType, client)
 		if err != nil {
@@ -70,9 +77,38 @@ func main() {
 		})
 	})
 
+	router.POST("/createConfig/:type", func(c *gin.Context) {
+		configType := c.Param("type")
+		confTypeStruct, _ := selectType(configType)
+		var bytes []byte
+		c.Bind(&confTypeStruct)
+		bytes, err = json.Marshal(confTypeStruct)
+		result, err := client.CreateConfig(context.Background(), &api.Config{ConfigType: configType, Config: bytes})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"config": result,
+		})
+	})
+
+	router.DELETE("/deleteConfig/:type/:name", func(c *gin.Context) {
+		configType := c.Param("type")
+		configName := c.Param("name")
+		deleteResult, err := client.DeleteConfig(context.Background(), &api.DeleteConfigRequest{configName, configType})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"config": deleteResult,
+		})
+	})
+
 	router.GET("/info", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"ststus": http.StatusText(http.StatusOK),
+			"status": http.StatusText(http.StatusOK),
 		})
 	})
 
@@ -85,6 +121,20 @@ func main() {
 		log.Fatalf("filed to run server: %v", err)
 	}
 
+}
+
+func selectType(cType string) (database.ConfigInterface, error) {
+	switch cType {
+	case "mongodb":
+		return new(database.Mongodb), nil
+	case "tempconfig":
+		return new(database.Tempconfig), nil
+	case "tsconfig":
+		return new(database.Tsconfig), nil
+	default:
+		log.Printf("Such config: %v does not exist", cType)
+		return nil, errors.New("config does not exist")
+	}
 }
 
 func retrieveConfig(configName, configType *string, client api.ConfigServiceClient) (database.ConfigInterface, error) {
@@ -120,7 +170,7 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 		return tsconfig, err
 	default:
 		log.Printf("Such config: %v does not exist", *configType)
-		return nil, err
+		return nil, errors.New("config does not exist")
 	}
 }
 
