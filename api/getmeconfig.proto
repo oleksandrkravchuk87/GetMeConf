@@ -7,6 +7,7 @@ service ConfigService {
     rpc GetConfigsByType (GetConfigsByTypeRequest) returns (stream GetConfigResponce);
     rpc CreateConfig (Config) returns (Responce);
     rpc DeleteConfig (DeleteConfigRequest) returns (Responce);
+    rpc UpdateConfig (Config) returns (Responce);
 }
 
 message GetConfigByNameRequest {
