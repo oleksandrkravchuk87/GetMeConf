@@ -178,5 +178,5 @@ func TestDeleteConfigFromDB(t *testing.T) {
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
-	assert.Equal(t, "deleted 1 rows", res)
+	assert.Equal(t, "deleted 1 row(s)", res)
 }

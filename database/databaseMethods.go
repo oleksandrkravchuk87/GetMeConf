@@ -178,7 +178,7 @@ func DeleteConfigFromDB(confName, confType string, db *gorm.DB) (string, error) 
 	if rowsAffected < 1 {
 		return "", errors.New("could not delete from database")
 	}
-	return fmt.Sprintf("deleted %d rows", rowsAffected), nil
+	return fmt.Sprintf("deleted %d row(s)", rowsAffected), nil
 }
 
 //-----------------------------------------------------
