@@ -20,10 +20,10 @@ func main() {
 	flag.Parse()
 
 	log.Println("Processing client...Reading flags")
+	log.Printf("Command: %v ",*command)
 
 	switch *command {
 	case "create":
-		log.Printf("Command: %v \n Config type: %v", *command, *configType)
 		sentConfigToServer(*fileName)
 
 	case "read":
