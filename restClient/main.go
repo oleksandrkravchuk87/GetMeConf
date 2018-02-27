@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 
+	"os"
+
 	"github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/gin-gonic/gin"
@@ -21,22 +23,18 @@ type ConfigRecord struct {
 
 func main() {
 
-	port := "8080"
-	serviceHost := "localhost"
-	servicePort := "3000"
-
-	//port := os.Getenv("PORT")
-	//if port == "" {
-	//	log.Fatalf("port is not set")
-	//}
-	//serviceHost := os.Getenv("SERVICEHOST")
-	//if port == "" {
-	//	log.Fatalf("service host is not set")
-	//}
-	//servicePort := os.Getenv("SERVICEPORT")
-	//if servicePort == "" {
-	//	log.Fatalf("service port is not set")
-	//}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	serviceHost := os.Getenv("SERVICEHOST")
+	if port == "" {
+		serviceHost = "localhost"
+	}
+	servicePort := os.Getenv("SERVICEPORT")
+	if servicePort == "" {
+		servicePort = "3000"
+	}
 
 	address := fmt.Sprintf("%s:%s", serviceHost, servicePort)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())

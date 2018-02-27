@@ -10,6 +10,8 @@ import (
 
 	"errors"
 
+	"os"
+
 	pb "github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/jinzhu/gorm"
@@ -109,7 +111,7 @@ func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Responce{response}, nil
+	return &pb.Responce{Status: response}, nil
 }
 
 func (s *configServer) DeleteConfig(ctx context.Context, delConfigRequest *pb.DeleteConfigRequest) (*pb.Responce, error) {
@@ -120,7 +122,7 @@ func (s *configServer) DeleteConfig(ctx context.Context, delConfigRequest *pb.De
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Responce{response}, nil
+	return &pb.Responce{Status: response}, nil
 }
 
 func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTypeServer) error {
@@ -133,10 +135,9 @@ func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTyp
 
 func main() {
 
-	port := "3000"
-	//port := os.Getenv("PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatalf("port is not set")
+		port = "3000"
 	}
 
 	cfg, err := database.ReadConfig()
@@ -145,7 +146,7 @@ func main() {
 	}
 	db, err := database.InitPostgresDB(*cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to init postgres db: %v", err)
 	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
@@ -157,9 +158,9 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	cache := cache.New(5*time.Minute, 10*time.Minute)
+	configCache := cache.New(5*time.Minute, 10*time.Minute)
 
-	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: cache, mut: &sync.Mutex{}, db: db})
+	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: configCache, mut: &sync.Mutex{}, db: db})
 	defer grpcServer.GracefulStop()
 	err = grpcServer.Serve(lis)
 	if err != nil {

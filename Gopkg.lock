@@ -14,14 +14,15 @@
   revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
 
 [[projects]]
+  branch = "master"
   name = "github.com/gin-gonic/gin"
   packages = [
     ".",
     "binding",
+    "json",
     "render"
   ]
-  revision = "d459835d2b077e44f7c9b453505ee29881d5d12d"
-  version = "v1.2"
+  revision = "5d3f30cfc81f9109850fa9043a19783cbbde68a5"
 
 [[projects]]
   name = "github.com/golang/protobuf"
@@ -48,6 +49,12 @@
   revision = "1c35d901db3da928c72a72d8458480cc9ade058f"
 
 [[projects]]
+  name = "github.com/json-iterator/go"
+  packages = ["."]
+  revision = "0ac74bba4a81211b28e32ef260c0f16ae41f1377"
+  version = "1.1.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/lib/pq"
   packages = [
@@ -69,6 +76,12 @@
   version = "v2.1.0"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -85,6 +98,15 @@
   packages = ["codec"]
   revision = "9831f2c3ac1068a78f50999a30db84270f647af6"
   version = "v1.1"
+
+[[projects]]
+  name = "github.com/v2pro/plz"
+  packages = [
+    "concurrent",
+    "reflect2"
+  ]
+  revision = "10fc95fad3224a032229e59f6e7023137d82b526"
+  version = "0.9.1"
 
 [[projects]]
   branch = "master"
@@ -189,6 +211,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "428903d9f4d7d1e0a9051d32ae681785b3677c3aa44aa23e711398b8ea39aea6"
+  inputs-digest = "c47530ce864aa46b991c093ad6536ca5ebb6e9a1e6a5e5d0ecd6d03476a70b10"
   solver-name = "gps-cdcl"
   solver-version = 1

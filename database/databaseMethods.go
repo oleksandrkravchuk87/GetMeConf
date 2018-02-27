@@ -163,7 +163,7 @@ func SaveConfigToDB(confType string, config []byte, db *gorm.DB) (string, error)
 		log.Printf("error during saving to database: %v", err)
 		return "", err
 	}
-	return "config was added", nil
+	return "OK", nil
 }
 
 //DeleteConfigFromDB

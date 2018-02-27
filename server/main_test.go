@@ -8,8 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"fmt"
-
 	pb "github.com/YAWAL/GetMeConf/api"
 	"github.com/YAWAL/GetMeConf/database"
 	"github.com/jinzhu/gorm"
@@ -162,14 +160,61 @@ func TestMarshalAndSend(t *testing.T) {
 	assert.Equal(t, 1, len(mock.Results), "expected to contain 1 item")
 }
 
-func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb.Responce, error) {
-	s.mut.Lock()
-	s.configCache.Flush()
-	s.mut.Unlock()
-	fmt.Println("main", config)
-	response, err := database.SaveConfigToDB(config.ConfigType, config.Config, s.db)
-	if err != nil {
-		return nil, err
+func TestCreateConfig(t *testing.T) {
+	old := databaseSaveConfigToDB
+	defer func() { databaseSaveConfigToDB = old }()
+	databaseSaveConfigToDB = func(confType string, config []byte, db *gorm.DB) (string, error) {
+		return "OK", nil
+
 	}
-	return &pb.Responce{response}, nil
+	cache := cache.New(5*time.Minute, 10*time.Minute)
+	mock := &mockConfigServer{}
+	mock.configCache = cache
+	mock.mut = &sync.Mutex{}
+
+	res, err := mock.CreateConfig(context.Background(), &pb.Config{ConfigType: "testType", Config: []byte("testConfig")})
+	if err != nil {
+		t.Error("error during unit testing: ", err)
+	}
+	expectedResponse := &pb.Responce{"OK"}
+	assert.Equal(t, expectedResponse, res)
+
+	expectedError := errors.New("error from database querying")
+	databaseSaveConfigToDB = func(confType string, config []byte, db *gorm.DB) (string, error) {
+		return "", expectedError
+
+	}
+	_, resultingErr := mock.CreateConfig(context.Background(), &pb.Config{ConfigType: "testType", Config: []byte("errTestConfig")})
+	if assert.Error(t, resultingErr) {
+		assert.Equal(t, expectedError, resultingErr)
+	}
+}
+
+func TestDeleteConfig(t *testing.T) {
+	old := databaseDeleteConfigFromDB
+	defer func() { databaseDeleteConfigFromDB = old }()
+	databaseDeleteConfigFromDB = func(configName, confType string, db *gorm.DB) (string, error) {
+		return "OK", nil
+	}
+	cache := cache.New(5*time.Minute, 10*time.Minute)
+	mock := &mockConfigServer{}
+	mock.configCache = cache
+	mock.mut = &sync.Mutex{}
+
+	res, err := mock.DeleteConfig(context.Background(), &pb.DeleteConfigRequest{ConfigType: "testType", ConfigName: "testName"})
+	if err != nil {
+		t.Error("error during unit testing: ", err)
+	}
+	expectedResponse := &pb.Responce{"OK"}
+	assert.Equal(t, expectedResponse, res)
+
+	expectedError := errors.New("error from database querying")
+	databaseDeleteConfigFromDB = func(configName, confType string, db *gorm.DB) (string, error) {
+		return "", expectedError
+
+	}
+	_, resultingErr := mock.DeleteConfig(context.Background(), &pb.DeleteConfigRequest{ConfigType: "testType", ConfigName: "errorTestName"})
+	if assert.Error(t, resultingErr) {
+		assert.Equal(t, expectedError, resultingErr)
+	}
 }
