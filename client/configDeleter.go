@@ -15,9 +15,7 @@ func deleteConfig(configType, configName string) {
 		log.Fatalf("Dial error has occurred: %v", err)
 	}
 	client := api.NewConfigServiceClient(conn)
-
 	resp, err := client.DeleteConfig(context.Background(), &api.DeleteConfigRequest{ConfigType: configType, ConfigName: configName})
-
 	if err != nil {
 		log.Printf("Error during client.DeleteConfig has occurred: %v", err)
 	}

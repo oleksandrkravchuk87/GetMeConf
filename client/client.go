@@ -28,12 +28,13 @@ func main() {
 
 	case "read":
 		ConfigRetriever()
-	case "update":
 
-		//TODO implement
+	case "update":
+		sentUpdatedConfigToServer(*fileName)
 
 	case "delete":
 		deleteConfig(*configType, *configName)
+
 	default:
 		log.Fatalf("Cant parse command flag. Valid command flags are: create, read, update, delete")
 
