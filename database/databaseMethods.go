@@ -23,9 +23,9 @@ func initConfigDataMap() {
 		return
 	}
 	factory = map[string]PersistedData{
-		"mongodb":    PersistedData{ConfigType: new(Mongodb), IDField: "domain"},
-		"tempconfig": PersistedData{ConfigType: new(Tempconfig), IDField: "host"},
-		"tsconfig":   PersistedData{ConfigType: new(Tsconfig), IDField: "module"},
+		"mongodb":    {ConfigType: new(Mongodb), IDField: "domain"},
+		"tempconfig": {ConfigType: new(Tempconfig), IDField: "host"},
+		"tsconfig":   {ConfigType: new(Tsconfig), IDField: "module"},
 	}
 }
 
@@ -56,29 +56,28 @@ func InitPostgresDB(cfg PostgresConfig) (db *gorm.DB, err error) {
 }
 
 func gormMigrate(db *gorm.DB) error {
-
 	db.LogMode(true)
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
 			ID: "Initial",
 			Migrate: func(tx *gorm.DB) error {
 				type Mongodb struct {
-					gorm.Model
-					Domain  string
+					//gorm.Model
+					Domain  string `gorm:"primary_key"`
 					Mongodb bool
 					Host    string
 					Port    string
 				}
 				type Tsconfig struct {
-					gorm.Model
-					Module    string
+					//gorm.Model
+					Module    string `gorm:"primary_key"`
 					Target    string
-					SourseMap bool
-					Exclude   int
+					SourceMap bool
+					Excluding int
 				}
 				type Tempconfig struct {
-					gorm.Model
-					RestApiRoot    string
+					//gorm.Model
+					RestApiRoot    string `gorm:"primary_key"`
 					Host           string
 					Port           string
 					Remoting       string
@@ -179,4 +178,74 @@ func DeleteConfigFromDB(confName, confType string, db *gorm.DB) (string, error) 
 		return "", errors.New("could not delete from database")
 	}
 	return fmt.Sprintf("deleted %d row(s)", rowsAffected), nil
+}
+
+//UpdateConfigInDB updates a record in database, rewriting the fields if string fields are not empty
+func UpdateMongoDBConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
+	var newConfig, persistedConfig Mongodb
+	err := json.Unmarshal(configBytes, &newConfig)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Where("domain = ?", newConfig.Domain).Find(&persistedConfig).Error
+	if err != nil {
+		return "", err
+	}
+	if newConfig.Host != "" && newConfig.Port != "" {
+		err = db.Model(&persistedConfig).Update(Mongodb{Mongodb: newConfig.Mongodb, Port: newConfig.Port, Host: newConfig.Host}).Error
+		if err != nil {
+			log.Printf("error during saving to database: %v", err)
+			return "", err
+		}
+		return "OK", nil
+	}
+	return "", errors.New("fields are empty")
+
+}
+
+//UpdateTempConfigInDB updates a record in database, rewriting the fields if string fields are not empty
+func UpdateTempConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
+	var newConfig, persistedConfig Tempconfig
+	err := json.Unmarshal(configBytes, &newConfig)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Where("rest_api_root = ?", newConfig.RestApiRoot).Find(&persistedConfig).Error
+	if err != nil {
+		return "", err
+	}
+	if newConfig.Host != "" && newConfig.Port != "" && newConfig.Remoting != "" {
+		err = db.Model(&persistedConfig).Update(Tempconfig{Host: newConfig.Host, Port: newConfig.Port, Remoting: newConfig.Remoting, LegasyExplorer: newConfig.LegasyExplorer}).Error
+		if err != nil {
+			log.Printf("error during saving to database: %v", err)
+			return "", err
+		}
+		return "OK", nil
+	}
+	return "", errors.New("fields are empty")
+}
+
+//UpdateTsConfigInDB updates a record in database, rewriting the fields if string fields are not empty
+func UpdateTsConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
+	var newConfig, persistedConfig Tsconfig
+	err := json.Unmarshal(configBytes, &newConfig)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Where("module = ?", newConfig.Module).Find(&persistedConfig).Error
+	if err != nil {
+		return "", err
+	}
+	if newConfig.Target != "" {
+		err = db.Model(&persistedConfig).Update(Tsconfig{Target: newConfig.Target, SourceMap: newConfig.SourceMap, Excluding: newConfig.Excluding}).Error
+		if err != nil {
+			log.Printf("error during saving to database: %v", err)
+			return "", err
+		}
+		return "OK", nil
+	}
+	return "", errors.New("fields are empty")
 }

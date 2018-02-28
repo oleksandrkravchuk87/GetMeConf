@@ -32,6 +32,9 @@ var databaseGetTempConfigs = database.GetTempConfigs
 var databaseGetTsconfigs = database.GetTsconfigs
 var databaseSaveConfigToDB = database.SaveConfigToDB
 var databaseDeleteConfigFromDB = database.DeleteConfigFromDB
+var databaseUpdateMongoDBConfigInDB = database.UpdateMongoDBConfigInDB
+var databaseUpdateTempconfigInDB = database.UpdateTempConfigInDB
+var databaseUpdateTsConfigInDB = database.UpdateTsConfigInDB
 
 //GetConfigByName returns one config in GetConfigResponce message
 func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetConfigByNameRequest) (*pb.GetConfigResponce, error) {
@@ -102,28 +105,27 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 	return nil
 }
 
-//CreateConfig adds new config record to the database
+//CreateConfig calls the function from database package to add a new config record to the database, returns response structure containing a status message
 func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb.Responce, error) {
-	s.mut.Lock()
-	s.configCache.Flush()
-	s.mut.Unlock()
-	fmt.Println("main", config)
 	response, err := databaseSaveConfigToDB(config.ConfigType, config.Config, s.db)
 	if err != nil {
 		return nil, err
 	}
+	s.mut.Lock()
+	s.configCache.Flush()
+	s.mut.Unlock()
 	return &pb.Responce{Status: response}, nil
 }
 
 //DeleteConfig removes config records from the database. If successful, returns the amount of deleted records in a status message of the response structure
 func (s *configServer) DeleteConfig(ctx context.Context, delConfigRequest *pb.DeleteConfigRequest) (*pb.Responce, error) {
-	s.mut.Lock()
-	s.configCache.Flush()
-	s.mut.Unlock()
 	response, err := databaseDeleteConfigFromDB(delConfigRequest.ConfigName, delConfigRequest.ConfigType, s.db)
 	if err != nil {
 		return nil, err
 	}
+	s.mut.Lock()
+	s.configCache.Flush()
+	s.mut.Unlock()
 	return &pb.Responce{Status: response}, nil
 }
 
@@ -133,6 +135,36 @@ func marshalAndSend(results interface{}, stream pb.ConfigService_GetConfigsByTyp
 		return err
 	}
 	return stream.Send(&pb.GetConfigResponce{Config: byteRes})
+}
+
+//UpdateConfig
+func (s *configServer) UpdateConfig(ctx context.Context, config *pb.Config) (*pb.Responce, error) {
+	var status string
+	var err error
+	switch config.ConfigType {
+	case "mongodb":
+		status, err = databaseUpdateMongoDBConfigInDB(config.Config, s.db)
+		if err != nil {
+			return nil, err
+		}
+	case "tempconfig":
+		status, err = databaseUpdateTempconfigInDB(config.Config, s.db)
+		if err != nil {
+			return nil, err
+		}
+	case "tsconfig":
+		status, err = databaseUpdateTsConfigInDB(config.Config, s.db)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		log.Print("unexpacted type")
+		return nil, errors.New("unexpacted type")
+	}
+	s.mut.Lock()
+	s.configCache.Flush()
+	s.mut.Unlock()
+	return &pb.Responce{Status: status}, nil
 }
 
 func main() {

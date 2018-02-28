@@ -218,3 +218,72 @@ func TestDeleteConfig(t *testing.T) {
 		assert.Equal(t, expectedError, resultingErr)
 	}
 }
+
+func TestUpdateConfig(t *testing.T) {
+	oldDatabaseUpdateMongoDBConfigInDB := databaseUpdateMongoDBConfigInDB
+	defer func() { databaseUpdateMongoDBConfigInDB = oldDatabaseUpdateMongoDBConfigInDB }()
+
+	oldDatabaseUpdateTempconfigInDB := databaseUpdateTempconfigInDB
+	defer func() { databaseUpdateTempconfigInDB = oldDatabaseUpdateTempconfigInDB }()
+
+	oldDatabaseUpdateTsConfigInDB := databaseUpdateTsConfigInDB
+	defer func() { databaseUpdateTsConfigInDB = oldDatabaseUpdateTsConfigInDB }()
+
+	databaseUpdateMongoDBConfigInDB = func(config []byte, db *gorm.DB) (string, error) {
+		return "OK", nil
+	}
+
+	databaseUpdateTempconfigInDB = func(config []byte, db *gorm.DB) (string, error) {
+		return "OK", nil
+	}
+
+	databaseUpdateTsConfigInDB = func(config []byte, db *gorm.DB) (string, error) {
+		return "OK", nil
+	}
+
+	configCache := cache.New(5*time.Minute, 10*time.Minute)
+	mock := &mockConfigServer{}
+	mock.configCache = configCache
+	mock.mut = &sync.Mutex{}
+
+	resp, err := mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "mongodb"})
+	assert.Equal(t, &pb.Responce{Status: "OK"}, resp)
+	resp, err = mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "tsconfig"})
+	assert.Equal(t, &pb.Responce{Status: "OK"}, resp)
+	resp, err = mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "tempconfig"})
+	assert.Equal(t, &pb.Responce{Status: "OK"}, resp)
+	_, err = mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "unexpectedConfigType"})
+	if assert.Error(t, err) {
+		assert.Equal(t, errors.New("unexpacted type"), err)
+	}
+
+	expectedError := errors.New("error from database querying")
+	databaseUpdateMongoDBConfigInDB = func(config []byte, db *gorm.DB) (string, error) {
+		return "", expectedError
+	}
+
+	databaseUpdateTempconfigInDB = func(config []byte, db *gorm.DB) (string, error) {
+		return "", expectedError
+	}
+
+	databaseUpdateTsConfigInDB = func(config []byte, db *gorm.DB) (string, error) {
+		return "", expectedError
+	}
+	err = nil
+	_, err = mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "mongodb"})
+	if assert.Error(t, err) {
+		assert.Equal(t, errors.New("error from database querying"), err)
+	}
+
+	err = nil
+	_, err = mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "tsconfig"})
+	if assert.Error(t, err) {
+		assert.Equal(t, errors.New("error from database querying"), err)
+	}
+
+	err = nil
+	_, err = mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "tempconfig"})
+	if assert.Error(t, err) {
+		assert.Equal(t, errors.New("error from database querying"), err)
+	}
+}

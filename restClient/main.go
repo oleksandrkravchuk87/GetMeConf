@@ -17,10 +17,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-type ConfigRecord struct {
-	Config []byte `json:"config"`
-}
-
 func main() {
 
 	port := os.Getenv("PORT")
@@ -101,6 +97,22 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"config": deleteResult,
+		})
+	})
+
+	router.PUT("/updateConfig/:type", func(c *gin.Context) {
+		configType := c.Param("type")
+		confTypeStruct, _ := selectType(configType)
+		var bytes []byte
+		c.Bind(&confTypeStruct)
+		bytes, err = json.Marshal(confTypeStruct)
+		updateResult, err := client.UpdateConfig(context.Background(), &api.Config{ConfigType: configType, Config: bytes})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"config": updateResult,
 		})
 	})
 

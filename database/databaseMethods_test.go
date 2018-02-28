@@ -37,10 +37,8 @@ func formatRequest(s string) string {
 
 func TestGetMongoDBConfigs(t *testing.T) {
 	m, db, _ := newDB()
-	var fieldNames = []string{"domain", "mongodb", "host", "port"}
-	rows := sqlmock.NewRows(fieldNames)
 	mongodbConfig := Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
-	rows = rows.AddRow(mongodbConfig.Domain, mongodbConfig.Mongodb, mongodbConfig.Host, mongodbConfig.Port)
+	rows := getMongoDBRows()
 	expConfig := []Mongodb{mongodbConfig}
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\"")).WillReturnRows(rows)
 	returnedMongoConfigs, err := GetMongoDBConfigs(db)
@@ -64,10 +62,8 @@ func TestGetMongoDBConfigs_withDBError(t *testing.T) {
 
 func TestGetTsconfigs(t *testing.T) {
 	m, db, _ := newDB()
-	var fieldNames = []string{"module", "target", "source_map", "excluding"}
-	rows := sqlmock.NewRows(fieldNames)
+	rows := getTsConfigRows()
 	tsConfig := Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
-	rows = rows.AddRow(tsConfig.Module, tsConfig.Target, tsConfig.SourceMap, tsConfig.Excluding)
 	expConfig := []Tsconfig{tsConfig}
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\"")).WillReturnRows(rows)
 	returnedTsConfigs, err := GetTsconfigs(db)
@@ -90,10 +86,8 @@ func TestGetTsconfigs_withDBError(t *testing.T) {
 
 func TestGetTempConfigs(t *testing.T) {
 	m, db, _ := newDB()
-	var fieldNames = []string{"rest_api_root", "host", "port", "remoting", "legasy_explorer"}
-	rows := sqlmock.NewRows(fieldNames)
+	rows := getTempConfigRows()
 	tempConfig := Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
-	rows = rows.AddRow(tempConfig.RestApiRoot, tempConfig.Host, tempConfig.Port, tempConfig.Remoting, tempConfig.LegasyExplorer)
 	expConfig := []Tempconfig{tempConfig}
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\"")).WillReturnRows(rows)
 	returnedTempConfigs, err := GetTempConfigs(db)
@@ -191,6 +185,239 @@ func TestDeleteConfigFromDB(t *testing.T) {
 		WithArgs("notExistingTestID").WillReturnError(errors.New("could not delete from database"))
 	res, returnedErr := DeleteConfigFromDB(testID, testType, db)
 	expectedError := errors.New("could not delete from database")
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func getMongoDBRows() *sqlmock.Rows {
+	var fieldNames = []string{"domain", "mongodb", "host", "port"}
+	rows := sqlmock.NewRows(fieldNames)
+	mongodbConfig := Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
+	rows = rows.AddRow(mongodbConfig.Domain, mongodbConfig.Mongodb, mongodbConfig.Host, mongodbConfig.Port)
+	return rows
+}
+
+func getTsConfigRows() *sqlmock.Rows {
+	var fieldNames = []string{"module", "target", "source_map", "excluding"}
+	rows := sqlmock.NewRows(fieldNames)
+	tsConfig := Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	rows = rows.AddRow(tsConfig.Module, tsConfig.Target, tsConfig.SourceMap, tsConfig.Excluding)
+	return rows
+}
+
+func getTempConfigRows() *sqlmock.Rows {
+	var fieldNames = []string{"rest_api_root", "host", "port", "remoting", "legasy_explorer"}
+	rows := sqlmock.NewRows(fieldNames)
+	tempConfig := Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	rows = rows.AddRow(tempConfig.RestApiRoot, tempConfig.Host, tempConfig.Port, tempConfig.Remoting, tempConfig.LegasyExplorer)
+	return rows
+}
+
+func TestUpdateMongoDBConfigInDB(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getMongoDBRows()
+	initConfigDataMap()
+	config := Mongodb{"testDomain", true, "testHost", "8080"}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
+		WithArgs("testDomain").
+		WillReturnRows(rows)
+	m.ExpectExec("^UPDATE \"mongodbs\" SET ").
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	result, err := UpdateMongoDBConfigInDB(configBytes, db)
+	if err != nil {
+		t.Error("error during unit testing: ", err)
+	}
+	assert.Equal(t, "OK", result)
+
+}
+
+func TestUpdateMongoDBConfigInDB_withFirstDBError(t *testing.T) {
+	m, db, _ := newDB()
+	initConfigDataMap()
+	config := Mongodb{"notExisitingConfig", true, "testHost", "8080"}
+	configBytes, _ := json.Marshal(config)
+	expectedError := errors.New("db error")
+	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
+		WithArgs("notExisitingConfig").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateMongoDBConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateMongoDBConfigInDB_withSecondDBError(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getMongoDBRows()
+	initConfigDataMap()
+	config := Mongodb{"testDomain", true, "testHost", "8080"}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
+		WithArgs("testDomain").
+		WillReturnRows(rows)
+	expectedError := errors.New("db error")
+	m.ExpectExec("UPDATE \"mongodbs\" SET").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateMongoDBConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateMongoDBConfigInDB_withThirdDBError(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getMongoDBRows()
+	initConfigDataMap()
+	config := Mongodb{"testDomain", true, "", ""}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
+		WithArgs("testDomain").
+		WillReturnRows(rows)
+	expectedError := errors.New("fields are empty")
+	m.ExpectExec("UPDATE \"mongodbs\" SET").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateMongoDBConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateTempConfigInDB(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getTempConfigRows()
+	initConfigDataMap()
+	config := Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
+		WithArgs("testApiRoot").
+		WillReturnRows(rows)
+	m.ExpectExec("UPDATE \"tempconfigs\" SET").
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	result, err := UpdateTempConfigInDB(configBytes, db)
+	if err != nil {
+		t.Error("error during unit testing: ", err)
+	}
+	assert.Equal(t, "OK", result)
+
+}
+
+func TestUpdateTempConfigInDB_withFirstDBError(t *testing.T) {
+	m, db, _ := newDB()
+	initConfigDataMap()
+	config := Tempconfig{RestApiRoot: "notExisitingConfig", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	configBytes, _ := json.Marshal(config)
+	expectedError := errors.New("db error")
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
+		WithArgs("notExisitingConfig").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateTempConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateTempConfigInDB_withSecondDBError(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getTempConfigRows()
+	initConfigDataMap()
+	config := Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
+		WithArgs("testApiRoot").
+		WillReturnRows(rows)
+	expectedError := errors.New("db error")
+	m.ExpectExec("UPDATE \"tempconfigs\" SET").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateTempConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateTempConfigInDB_withThirdDBError(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getTempConfigRows()
+	initConfigDataMap()
+	config := Tempconfig{RestApiRoot: "testApiRoot", Host: "", Port: "", Remoting: "", LegasyExplorer: true}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
+		WithArgs("testApiRoot").
+		WillReturnRows(rows)
+	expectedError := errors.New("fields are empty")
+	m.ExpectExec("UPDATE \"tsconfigs\" SET").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateTempConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateTsConfigInDB(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getTsConfigRows()
+	initConfigDataMap()
+	config := Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
+		WithArgs("testModule").
+		WillReturnRows(rows)
+	m.ExpectExec("UPDATE \"tsconfigs\" SET").
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	result, err := UpdateTsConfigInDB(configBytes, db)
+	if err != nil {
+		t.Error("error during unit testing: ", err)
+	}
+	assert.Equal(t, "OK", result)
+}
+
+func TestUpdateTsConfigInDB_withFirstDBError(t *testing.T) {
+	m, db, _ := newDB()
+	initConfigDataMap()
+	config := Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	configBytes, _ := json.Marshal(config)
+	expectedError := errors.New("db error")
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
+		WithArgs("testModule").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateTsConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateTsConfigInDB_withSecondDBError(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getTsConfigRows()
+	initConfigDataMap()
+	config := Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
+		WithArgs("testModule").
+		WillReturnRows(rows)
+	expectedError := errors.New("db error")
+	m.ExpectExec("UPDATE \"tsconfigs\" SET ").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateTsConfigInDB(configBytes, db)
+	if assert.Error(t, returnedErr) {
+		assert.Equal(t, expectedError, returnedErr)
+	}
+}
+
+func TestUpdateTsConfigInDB_withThirdDBError(t *testing.T) {
+	m, db, _ := newDB()
+	rows := getMongoDBRows()
+	initConfigDataMap()
+	config := Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	configBytes, _ := json.Marshal(config)
+	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
+		WithArgs("testModule").
+		WillReturnRows(rows)
+	expectedError := errors.New("fields are empty")
+	m.ExpectExec("UPDATE \"tsconfigs\" SET ").
+		WillReturnError(expectedError)
+	_, returnedErr := UpdateTsConfigInDB(configBytes, db)
 	if assert.Error(t, returnedErr) {
 		assert.Equal(t, expectedError, returnedErr)
 	}
