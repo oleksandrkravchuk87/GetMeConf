@@ -98,7 +98,7 @@ func gormMigrate(db *gorm.DB) error {
 	return err
 }
 
-//GetConfigByNameFromDB(confName string, confType string) searches a config in database using the type of the config and a unique name
+//GetConfigByNameFromDB searches a config in database using the type of the config and a unique name
 func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (ConfigInterface, error) {
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
@@ -113,7 +113,7 @@ func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (Confi
 	return result, nil
 }
 
-//GetMongoDBConfigs(db *gorm.DB) searches for all Mongodb configs in database
+//GetMongoDBConfigs searches for all Mongodb configs in database
 func GetMongoDBConfigs(db *gorm.DB) ([]Mongodb, error) {
 	var confSlice []Mongodb
 	err := db.Find(&confSlice).Error
@@ -123,7 +123,7 @@ func GetMongoDBConfigs(db *gorm.DB) ([]Mongodb, error) {
 	return confSlice, nil
 }
 
-//GetTempConfigs(db *gorm.DB) searches for all TempConfig in database
+//GetTempConfigs searches for all TempConfig in database
 func GetTempConfigs(db *gorm.DB) ([]Tempconfig, error) {
 	var confSlice []Tempconfig
 	err := db.Find(&confSlice).Error
@@ -133,7 +133,7 @@ func GetTempConfigs(db *gorm.DB) ([]Tempconfig, error) {
 	return confSlice, nil
 }
 
-//GetTsconfigs(db *gorm.DB) searches for all Tsconfigs in database
+//GetTsconfigs searches for all Tsconfigs in database
 func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
 	var confSlice []Tsconfig
 	err := db.Find(&confSlice).Error
@@ -179,7 +179,7 @@ func DeleteConfigFromDB(confName, confType string, db *gorm.DB) (string, error) 
 	return fmt.Sprintf("deleted %d row(s)", rowsAffected), nil
 }
 
-//UpdateConfigInDB updates a record in database, rewriting the fields if string fields are not empty
+//UpdateMongoDBConfigInDB updates a record in database, rewriting the fields if string fields are not empty
 func UpdateMongoDBConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
 	var newConfig, persistedConfig Mongodb
 	err := json.Unmarshal(configBytes, &newConfig)
@@ -192,7 +192,7 @@ func UpdateMongoDBConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
 		return "", err
 	}
 	if newConfig.Host != "" && newConfig.Port != "" {
-		err = db.Model(&persistedConfig).Update(Mongodb{Mongodb: newConfig.Mongodb, Port: newConfig.Port, Host: newConfig.Host}).Error
+		err = db.Model(&persistedConfig).Where("domain = ?", newConfig.Domain).Update(Mongodb{Mongodb: newConfig.Mongodb, Port: newConfig.Port, Host: newConfig.Host}).Error
 		if err != nil {
 			log.Printf("error during saving to database: %v", err)
 			return "", err
@@ -216,7 +216,7 @@ func UpdateTempConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
 		return "", err
 	}
 	if newConfig.Host != "" && newConfig.Port != "" && newConfig.Remoting != "" {
-		err = db.Model(&persistedConfig).Update(Tempconfig{Host: newConfig.Host, Port: newConfig.Port, Remoting: newConfig.Remoting, LegasyExplorer: newConfig.LegasyExplorer}).Error
+		err = db.Model(&persistedConfig).Where("rest_api_root = ?", newConfig.RestApiRoot).Update(Tempconfig{Host: newConfig.Host, Port: newConfig.Port, Remoting: newConfig.Remoting, LegasyExplorer: newConfig.LegasyExplorer}).Error
 		if err != nil {
 			log.Printf("error during saving to database: %v", err)
 			return "", err
@@ -239,7 +239,7 @@ func UpdateTsConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
 		return "", err
 	}
 	if newConfig.Target != "" {
-		err = db.Model(&persistedConfig).Update(Tsconfig{Target: newConfig.Target, SourceMap: newConfig.SourceMap, Excluding: newConfig.Excluding}).Error
+		err = db.Model(&persistedConfig).Where("module = ?", newConfig.Module).Update(Tsconfig{Target: newConfig.Target, SourceMap: newConfig.SourceMap, Excluding: newConfig.Excluding}).Error
 		if err != nil {
 			log.Printf("error during saving to database: %v", err)
 			return "", err

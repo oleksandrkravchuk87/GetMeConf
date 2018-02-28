@@ -72,7 +72,9 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 			if err != nil {
 				return err
 			}
-			stream.Send(&pb.GetConfigResponce{Config: byteRes})
+			if err = stream.Send(&pb.GetConfigResponce{Config: byteRes}); err != nil {
+				return err
+			}
 		}
 	case "tempconfig":
 		res, err := databaseGetTempConfigs(s.db)
@@ -84,7 +86,9 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 			if err != nil {
 				return err
 			}
-			stream.Send(&pb.GetConfigResponce{Config: byteRes})
+			if err = stream.Send(&pb.GetConfigResponce{Config: byteRes}); err != nil {
+				return err
+			}
 		}
 	case "tsconfig":
 		res, err := databaseGetTsconfigs(s.db)
@@ -96,7 +100,9 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 			if err != nil {
 				return err
 			}
-			stream.Send(&pb.GetConfigResponce{Config: byteRes})
+			if err = stream.Send(&pb.GetConfigResponce{Config: byteRes}); err != nil {
+				return err
+			}
 		}
 	default:
 		log.Print("unexpacted type")

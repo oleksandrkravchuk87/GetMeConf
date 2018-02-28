@@ -160,7 +160,7 @@ func TestSaveConfigToDB(t *testing.T) {
 	m.ExpectExec(formatRequest("INSERT INTO \"mongodbs\" (\"domain\",\"mongodb\",\"host\",\"port\") VALUES ($1,$2,$3,$4) RETURNING \"mongodbs\".*")).
 		WithArgs("notExisitingConfig", true, "testHost", "8080").
 		WillReturnError(errors.New("db error"))
-	result, returnedErr := SaveConfigToDB(testType, configBytes, db)
+	_, returnedErr := SaveConfigToDB(testType, configBytes, db)
 	expectedError := errors.New("db error")
 	if assert.Error(t, returnedErr) {
 		assert.Equal(t, expectedError, returnedErr)
@@ -183,7 +183,7 @@ func TestDeleteConfigFromDB(t *testing.T) {
 	testID = "notExistingTestID"
 	m.ExpectExec(formatRequest("DELETE FROM \"" + testType + "s\" WHERE (domain = $1)")).
 		WithArgs("notExistingTestID").WillReturnError(errors.New("could not delete from database"))
-	res, returnedErr := DeleteConfigFromDB(testID, testType, db)
+	_, returnedErr := DeleteConfigFromDB(testID, testType, db)
 	expectedError := errors.New("could not delete from database")
 	if assert.Error(t, returnedErr) {
 		assert.Equal(t, expectedError, returnedErr)
@@ -230,7 +230,6 @@ func TestUpdateMongoDBConfigInDB(t *testing.T) {
 		t.Error("error during unit testing: ", err)
 	}
 	assert.Equal(t, "OK", result)
-
 }
 
 func TestUpdateMongoDBConfigInDB_withFirstDBError(t *testing.T) {

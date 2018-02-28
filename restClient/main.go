@@ -34,12 +34,12 @@ func main() {
 
 	address := fmt.Sprintf("%s:%s", serviceHost, servicePort)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("dialContext error has occurred: %v", err)
+	}
 	conn.GetState()
 	log.Printf("State: %v", conn.GetState())
 	defer conn.Close()
-	if err != nil {
-		log.Fatalf("DialContext error has occurred: %v", err)
-	}
 
 	client := api.NewConfigServiceClient(conn)
 	log.Printf("Processing client...")
@@ -72,25 +72,20 @@ func main() {
 	})
 
 	router.POST("/createConfig/:type", func(c *gin.Context) {
-		configType := c.Param("type")
-		confTypeStruct, _ := selectType(configType)
-		var bytes []byte
-		c.Bind(&confTypeStruct)
-		bytes, err = json.Marshal(confTypeStruct)
-		result, err := client.CreateConfig(context.Background(), &api.Config{ConfigType: configType, Config: bytes})
+		createResult, err := createConfig(c, client)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"config": result,
+			"config": createResult,
 		})
 	})
 
 	router.DELETE("/deleteConfig/:type/:name", func(c *gin.Context) {
 		configType := c.Param("type")
 		configName := c.Param("name")
-		deleteResult, err := client.DeleteConfig(context.Background(), &api.DeleteConfigRequest{configName, configType})
+		deleteResult, err := client.DeleteConfig(context.Background(), &api.DeleteConfigRequest{ConfigName: configName, ConfigType: configType})
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
@@ -101,12 +96,7 @@ func main() {
 	})
 
 	router.PUT("/updateConfig/:type", func(c *gin.Context) {
-		configType := c.Param("type")
-		confTypeStruct, _ := selectType(configType)
-		var bytes []byte
-		c.Bind(&confTypeStruct)
-		bytes, err = json.Marshal(confTypeStruct)
-		updateResult, err := client.UpdateConfig(context.Background(), &api.Config{ConfigType: configType, Config: bytes})
+		updateResult, err := updateConfig(c, client)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
@@ -231,4 +221,46 @@ func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]data
 		}
 	}
 	return resultConfigs, nil
+}
+
+func updateConfig(c *gin.Context, client api.ConfigServiceClient) (*api.Responce, error) {
+	configType := c.Param("type")
+	confTypeStruct, err := selectType(configType)
+	if err != nil {
+		return nil, err
+	}
+	var bytes []byte
+	if err = c.Bind(&confTypeStruct); err != nil {
+		return nil, err
+	}
+	bytes, err = json.Marshal(confTypeStruct)
+	if err != nil {
+		return nil, err
+	}
+	updateResult, err := client.UpdateConfig(context.Background(), &api.Config{ConfigType: configType, Config: bytes})
+	if err != nil {
+		return nil, err
+	}
+	return updateResult, nil
+}
+
+func createConfig(c *gin.Context, client api.ConfigServiceClient) (*api.Responce, error) {
+	configType := c.Param("type")
+	confTypeStruct, err := selectType(configType)
+	if err != nil {
+		return nil, err
+	}
+	var bytes []byte
+	if err = c.Bind(&confTypeStruct); err != nil {
+		return nil, err
+	}
+	bytes, err = json.Marshal(confTypeStruct)
+	if err != nil {
+		return nil, err
+	}
+	result, err := client.CreateConfig(context.Background(), &api.Config{ConfigType: configType, Config: bytes})
+	if err != nil {
+		return nil, err
+	}
+	return result, err
 }
