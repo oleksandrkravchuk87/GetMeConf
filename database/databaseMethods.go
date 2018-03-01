@@ -103,6 +103,7 @@ func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (Confi
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
 	if !ok {
+
 		return nil, errors.New("unexpected config type")
 	}
 	result := configStruct.ConfigType
@@ -147,6 +148,8 @@ func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
 func SaveConfigToDB(confType string, config []byte, db *gorm.DB) (string, error) {
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
+	log.Printf("configStruct: %v", configStruct)
+
 	if !ok {
 		return "", errors.New("unexpected config type")
 	}

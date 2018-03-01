@@ -11,7 +11,7 @@ import (
 
 )
 
-func ConfigRetriever(){
+func configRetriever(){
 	if *configName == "" && *configType == "" {
 		log.Fatal("Can't proccess => config name and config type are empty")
 	}
@@ -19,12 +19,12 @@ func ConfigRetriever(){
 	log.Printf("Start checking input data:\n Config name: %v\n Config type : %v\n Output path: %v\nProcessing ...", *configName, *configType, *outPath)
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	defer conn.Close()
 	log.Printf("State: %v", conn.GetState())
 
 	if err != nil {
 		log.Fatalf("Dial error has occurred: %v", err)
 	}
+	defer conn.Close()
 
 	client := api.NewConfigServiceClient(conn)
 
@@ -52,7 +52,7 @@ func retrieveConfig(fileName, outputPath *string, client api.ConfigServiceClient
 		log.Fatalf("Error during retrieving config has occurred: %v", err)
 		return err
 	}
-	if err := WriteFile(conf.Config, *fileName, *outputPath); err != nil {
+	if err := writeFile(conf.Config, *fileName, *outputPath); err != nil {
 		log.Fatalf("Error during writing file in retrieving config: %v", err)
 		return err
 	}
@@ -82,7 +82,7 @@ func retrieveConfigs(client api.ConfigServiceClient) error {
 				log.Fatalf("Unmarshal mongodb err: %v", err)
 			}
 			fileName := mongodb.Domain
-			WriteFile(config.Config, fileName, *outPath)
+			writeFile(config.Config, fileName, *outPath)
 
 		case "tempconfig":
 			var tempconfig database.Tempconfig
@@ -91,7 +91,7 @@ func retrieveConfigs(client api.ConfigServiceClient) error {
 				log.Fatalf("Unmarshal tempconfig err: %v", err)
 			}
 			fileName := tempconfig.RestApiRoot
-			WriteFile(config.Config, fileName, *outPath)
+			writeFile(config.Config, fileName, *outPath)
 
 		case "tsconfig":
 			var tsconfig database.Tsconfig
@@ -100,7 +100,7 @@ func retrieveConfigs(client api.ConfigServiceClient) error {
 				log.Fatalf("Unmarshal tsconfig err: %v", err)
 			}
 			fileName := tsconfig.Module
-			WriteFile(config.Config, fileName, *outPath)
+			writeFile(config.Config, fileName, *outPath)
 
 		default:
 			log.Fatalf("Config: %v does not exist", *configType)

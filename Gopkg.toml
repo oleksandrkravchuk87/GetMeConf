@@ -44,3 +44,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/alecthomas/gometalinter"
+  version = "2.0.5"

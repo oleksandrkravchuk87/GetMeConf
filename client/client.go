@@ -27,7 +27,7 @@ func main() {
 		sentConfigToServer(*fileName)
 
 	case "read":
-		ConfigRetriever()
+		configRetriever()
 
 	case "update":
 		sentUpdatedConfigToServer(*fileName)
