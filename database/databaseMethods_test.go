@@ -10,6 +10,8 @@ import (
 
 	"errors"
 
+	"strconv"
+
 	"github.com/gin-gonic/gin/json"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
@@ -223,7 +225,8 @@ func TestUpdateMongoDBConfigInDB(t *testing.T) {
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
 		WithArgs("testDomain").
 		WillReturnRows(rows)
-	m.ExpectExec("^UPDATE \"mongodbs\" SET ").
+	m.ExpectExec(formatRequest("UPDATE mongodbs SET mongodb = $1, port = $2, host = $3 WHERE domain = $4")).
+		WithArgs(strconv.FormatBool(config.Mongodb), config.Port, config.Host, config.Domain).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 	result, err := UpdateMongoDBConfigInDB(configBytes, db)
 	if err != nil {
@@ -257,7 +260,8 @@ func TestUpdateMongoDBConfigInDB_withSecondDBError(t *testing.T) {
 		WithArgs("testDomain").
 		WillReturnRows(rows)
 	expectedError := errors.New("db error")
-	m.ExpectExec("UPDATE \"mongodbs\" SET").
+	m.ExpectExec(formatRequest("UPDATE mongodbs SET mongodb = $1, port = $2, host = $3 WHERE domain = $4")).
+		WithArgs(strconv.FormatBool(config.Mongodb), config.Port, config.Host, config.Domain).
 		WillReturnError(expectedError)
 	_, returnedErr := UpdateMongoDBConfigInDB(configBytes, db)
 	if assert.Error(t, returnedErr) {
@@ -275,8 +279,9 @@ func TestUpdateMongoDBConfigInDB_withThirdDBError(t *testing.T) {
 		WithArgs("testDomain").
 		WillReturnRows(rows)
 	expectedError := errors.New("fields are empty")
-	m.ExpectExec("UPDATE \"mongodbs\" SET").
-		WillReturnError(expectedError)
+	m.ExpectExec(formatRequest("UPDATE mongodbs SET mongodb = $1, port = $2, host = $3 WHERE domain = $4")).
+		WithArgs(strconv.FormatBool(config.Mongodb), config.Port, config.Host, config.Domain).
+		WillReturnResult(sqlmock.NewResult(0, 1))
 	_, returnedErr := UpdateMongoDBConfigInDB(configBytes, db)
 	if assert.Error(t, returnedErr) {
 		assert.Equal(t, expectedError, returnedErr)
@@ -292,7 +297,8 @@ func TestUpdateTempConfigInDB(t *testing.T) {
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
 		WithArgs("testApiRoot").
 		WillReturnRows(rows)
-	m.ExpectExec("UPDATE \"tempconfigs\" SET").
+	m.ExpectExec(formatRequest("UPDATE tempconfigs SET remoting = $1, port = $2, host = $3, legasy_explorer = $4 WHERE rest_api_root = $5")).
+		WithArgs(config.Remoting, config.Port, config.Host, strconv.FormatBool(config.LegasyExplorer), config.RestApiRoot).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 	result, err := UpdateTempConfigInDB(configBytes, db)
 	if err != nil {
@@ -327,7 +333,8 @@ func TestUpdateTempConfigInDB_withSecondDBError(t *testing.T) {
 		WithArgs("testApiRoot").
 		WillReturnRows(rows)
 	expectedError := errors.New("db error")
-	m.ExpectExec("UPDATE \"tempconfigs\" SET").
+	m.ExpectExec(formatRequest("UPDATE tempconfigs SET remoting = $1, port = $2, host = $3, legasy_explorer = $4 WHERE rest_api_root = $5")).
+		WithArgs(config.Remoting, config.Port, config.Host, strconv.FormatBool(config.LegasyExplorer), config.RestApiRoot).
 		WillReturnError(expectedError)
 	_, returnedErr := UpdateTempConfigInDB(configBytes, db)
 	if assert.Error(t, returnedErr) {
@@ -345,7 +352,8 @@ func TestUpdateTempConfigInDB_withThirdDBError(t *testing.T) {
 		WithArgs("testApiRoot").
 		WillReturnRows(rows)
 	expectedError := errors.New("fields are empty")
-	m.ExpectExec("UPDATE \"tsconfigs\" SET").
+	m.ExpectExec(formatRequest("UPDATE tempconfigs SET remoting = $1, port = $2, host = $3, legasy_explorer = $4 WHERE rest_api_root = $5")).
+		WithArgs(config.Remoting, config.Port, config.Host, strconv.FormatBool(config.LegasyExplorer), config.RestApiRoot).
 		WillReturnError(expectedError)
 	_, returnedErr := UpdateTempConfigInDB(configBytes, db)
 	if assert.Error(t, returnedErr) {
@@ -362,7 +370,8 @@ func TestUpdateTsConfigInDB(t *testing.T) {
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
 		WithArgs("testModule").
 		WillReturnRows(rows)
-	m.ExpectExec("UPDATE \"tsconfigs\" SET").
+	m.ExpectExec(formatRequest("UPDATE tsconfigs SET target = $1, source_map = $2, excluding = $3 WHERE module = $4")).
+		WithArgs(config.Target, strconv.FormatBool(config.SourceMap), strconv.Itoa(config.Excluding), config.Module).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 	result, err := UpdateTsConfigInDB(configBytes, db)
 	if err != nil {
@@ -396,7 +405,8 @@ func TestUpdateTsConfigInDB_withSecondDBError(t *testing.T) {
 		WithArgs("testModule").
 		WillReturnRows(rows)
 	expectedError := errors.New("db error")
-	m.ExpectExec("UPDATE \"tsconfigs\" SET ").
+	m.ExpectExec(formatRequest("UPDATE tsconfigs SET target = $1, source_map = $2, excluding = $3 WHERE module = $4")).
+		WithArgs(config.Target, strconv.FormatBool(config.SourceMap), strconv.Itoa(config.Excluding), config.Module).
 		WillReturnError(expectedError)
 	_, returnedErr := UpdateTsConfigInDB(configBytes, db)
 	if assert.Error(t, returnedErr) {
@@ -408,13 +418,14 @@ func TestUpdateTsConfigInDB_withThirdDBError(t *testing.T) {
 	m, db, _ := newDB()
 	rows := getMongoDBRows()
 	initConfigDataMap()
-	config := Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	config := Tsconfig{Module: "testModule", Target: "", SourceMap: true, Excluding: 1}
 	configBytes, _ := json.Marshal(config)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
 		WithArgs("testModule").
 		WillReturnRows(rows)
 	expectedError := errors.New("fields are empty")
-	m.ExpectExec("UPDATE \"tsconfigs\" SET ").
+	m.ExpectExec(formatRequest("UPDATE tsconfigs SET target = $1, source_map = $2, excluding = $3 WHERE module = $4")).
+		WithArgs(config.Target, strconv.FormatBool(config.SourceMap), strconv.Itoa(config.Excluding), config.Module).
 		WillReturnError(expectedError)
 	_, returnedErr := UpdateTsConfigInDB(configBytes, db)
 	if assert.Error(t, returnedErr) {

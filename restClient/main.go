@@ -17,6 +17,10 @@ import (
 	"google.golang.org/grpc"
 )
 
+const mongoConf = "mongodb"
+const tsConf = "tsconfig"
+const tempConf = "tempconfig"
+
 func main() {
 
 	port := os.Getenv("PORT")
@@ -125,11 +129,11 @@ func main() {
 
 func selectType(cType string) (database.ConfigInterface, error) {
 	switch cType {
-	case "mongodb":
+	case mongoConf:
 		return new(database.Mongodb), nil
-	case "tempconfig":
+	case tempConf:
 		return new(database.Tempconfig), nil
-	case "tsconfig":
+	case tsConf:
 		return new(database.Tsconfig), nil
 	default:
 		log.Printf("Such config: %v does not exist", cType)
@@ -144,7 +148,7 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 		return nil, err
 	}
 	switch *configType {
-	case "mongodb":
+	case mongoConf:
 		var mongodb database.Mongodb
 		err := json.Unmarshal(config.Config, &mongodb)
 		if err != nil {
@@ -152,7 +156,7 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 			return nil, err
 		}
 		return mongodb, err
-	case "tempconfig":
+	case tempConf:
 		var tempconfig database.Tempconfig
 		err := json.Unmarshal(config.Config, &tempconfig)
 		if err != nil {
@@ -160,7 +164,7 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 			return nil, err
 		}
 		return tempconfig, err
-	case "tsconfig":
+	case tsConf:
 		var tsconfig database.Tsconfig
 		err := json.Unmarshal(config.Config, &tsconfig)
 		if err != nil {
@@ -191,7 +195,7 @@ func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]data
 			return nil, err
 		}
 		switch *configType {
-		case "mongodb":
+		case mongoConf:
 			var mongodb database.Mongodb
 			err := json.Unmarshal(config.Config, &mongodb)
 			if err != nil {
@@ -199,7 +203,7 @@ func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]data
 				return nil, err
 			}
 			resultConfigs = append(resultConfigs, mongodb)
-		case "tempconfig":
+		case tempConf:
 			var tempconfig database.Tempconfig
 			err := json.Unmarshal(config.Config, &tempconfig)
 			if err != nil {
@@ -207,7 +211,7 @@ func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]data
 				return nil, err
 			}
 			resultConfigs = append(resultConfigs, tempconfig)
-		case "tsconfig":
+		case tsConf:
 			var tsconfig database.Tsconfig
 			err := json.Unmarshal(config.Config, &tsconfig)
 			if err != nil {
