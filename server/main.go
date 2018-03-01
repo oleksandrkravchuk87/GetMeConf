@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"sync"
 	"time"
 
 	"errors"
@@ -22,7 +21,6 @@ import (
 
 type configServer struct {
 	configCache *cache.Cache
-	mut         *sync.Mutex
 	db          *gorm.DB
 }
 
@@ -38,9 +36,9 @@ var databaseUpdateTsConfigInDB = database.UpdateTsConfigInDB
 
 //GetConfigByName returns one config in GetConfigResponce message
 func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetConfigByNameRequest) (*pb.GetConfigResponce, error) {
-	s.mut.Lock()
+
 	configResponse, found := s.configCache.Get(nameRequest.ConfigName)
-	s.mut.Unlock()
+
 	if found {
 		return configResponse.(*pb.GetConfigResponce), nil
 	}
@@ -53,9 +51,9 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 		return nil, err
 	}
 	configResponse = &pb.GetConfigResponce{Config: byteRes}
-	s.mut.Lock()
+
 	s.configCache.Set(nameRequest.ConfigName, configResponse, cache.DefaultExpiration)
-	s.mut.Unlock()
+
 	return configResponse.(*pb.GetConfigResponce), nil
 }
 
@@ -117,9 +115,9 @@ func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb
 	if err != nil {
 		return nil, err
 	}
-	s.mut.Lock()
+
 	s.configCache.Flush()
-	s.mut.Unlock()
+
 	return &pb.Responce{Status: response}, nil
 }
 
@@ -129,9 +127,9 @@ func (s *configServer) DeleteConfig(ctx context.Context, delConfigRequest *pb.De
 	if err != nil {
 		return nil, err
 	}
-	s.mut.Lock()
+
 	s.configCache.Flush()
-	s.mut.Unlock()
+
 	return &pb.Responce{Status: response}, nil
 }
 
@@ -167,9 +165,9 @@ func (s *configServer) UpdateConfig(ctx context.Context, config *pb.Config) (*pb
 		log.Print("unexpacted type")
 		return nil, errors.New("unexpacted type")
 	}
-	s.mut.Lock()
+
 	s.configCache.Flush()
-	s.mut.Unlock()
+
 	return &pb.Responce{Status: status}, nil
 }
 
@@ -200,7 +198,7 @@ func main() {
 
 	configCache := cache.New(5*time.Minute, 10*time.Minute)
 
-	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: configCache, mut: &sync.Mutex{}, db: db})
+	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: configCache, db: db})
 	defer grpcServer.GracefulStop()
 	err = grpcServer.Serve(lis)
 	if err != nil {

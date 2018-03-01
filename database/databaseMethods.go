@@ -11,6 +11,8 @@ import (
 
 	"encoding/json"
 
+	"strconv"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"gopkg.in/gormigrate.v1"
@@ -194,8 +196,9 @@ func UpdateMongoDBConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	if newConfig.Host != "" && newConfig.Port != "" {
-		err = db.Model(&persistedConfig).Where("domain = ?", newConfig.Domain).Update(Mongodb{Mongodb: newConfig.Mongodb, Port: newConfig.Port, Host: newConfig.Host}).Error
+		err = db.Exec("UPDATE mongodbs SET mongodb = ?, port = ?, host = ? WHERE domain = ?", strconv.FormatBool(newConfig.Mongodb), newConfig.Port, newConfig.Host, persistedConfig.Domain).Error
 		if err != nil {
 			log.Printf("error during saving to database: %v", err)
 			return "", err
@@ -219,7 +222,7 @@ func UpdateTempConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
 		return "", err
 	}
 	if newConfig.Host != "" && newConfig.Port != "" && newConfig.Remoting != "" {
-		err = db.Model(&persistedConfig).Where("rest_api_root = ?", newConfig.RestApiRoot).Update(Tempconfig{Host: newConfig.Host, Port: newConfig.Port, Remoting: newConfig.Remoting, LegasyExplorer: newConfig.LegasyExplorer}).Error
+		err = db.Exec("UPDATE tempconfigs SET remoting = ?, port = ?, host = ?, legasy_explorer = ? WHERE rest_api_root = ?", newConfig.Remoting, newConfig.Port, newConfig.Host, strconv.FormatBool(newConfig.LegasyExplorer), persistedConfig.RestApiRoot).Error
 		if err != nil {
 			log.Printf("error during saving to database: %v", err)
 			return "", err
@@ -242,7 +245,7 @@ func UpdateTsConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
 		return "", err
 	}
 	if newConfig.Target != "" {
-		err = db.Model(&persistedConfig).Where("module = ?", newConfig.Module).Update(Tsconfig{Target: newConfig.Target, SourceMap: newConfig.SourceMap, Excluding: newConfig.Excluding}).Error
+		err = db.Exec("UPDATE tsconfigs SET target = ?, source_map = ?, excluding = ? WHERE module = ?", newConfig.Target, strconv.FormatBool(newConfig.SourceMap), strconv.Itoa(newConfig.Excluding), persistedConfig.Module).Error
 		if err != nil {
 			log.Printf("error during saving to database: %v", err)
 			return "", err
