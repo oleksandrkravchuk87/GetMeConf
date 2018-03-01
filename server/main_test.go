@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"sync"
 	"testing"
 	"time"
 
@@ -26,7 +25,6 @@ func TestGetConfigByName(t *testing.T) {
 	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
 	mock.configCache = configCache
-	mock.mut = &sync.Mutex{}
 	res, err := mock.GetConfigByName(context.Background(), &pb.GetConfigByNameRequest{ConfigType: "mongodb", ConfigName: "testName"})
 
 	if err != nil {
@@ -56,7 +54,7 @@ func TestGetConfigByName_FromCache(t *testing.T) {
 	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
 	mock.configCache = configCache
-	mock.mut = &sync.Mutex{}
+
 	byteRes, err := json.Marshal(testConf)
 	if err != nil {
 		t.Error("error during unit testing: ", err)
@@ -170,7 +168,6 @@ func TestCreateConfig(t *testing.T) {
 	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
 	mock.configCache = configCache
-	mock.mut = &sync.Mutex{}
 
 	res, err := mock.CreateConfig(context.Background(), &pb.Config{ConfigType: "testType", Config: []byte("testConfig")})
 	if err != nil {
@@ -199,7 +196,6 @@ func TestDeleteConfig(t *testing.T) {
 	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
 	mock.configCache = configCache
-	mock.mut = &sync.Mutex{}
 
 	res, err := mock.DeleteConfig(context.Background(), &pb.DeleteConfigRequest{ConfigType: "testType", ConfigName: "testName"})
 	if err != nil {
@@ -244,7 +240,6 @@ func TestUpdateConfig(t *testing.T) {
 	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
 	mock.configCache = configCache
-	mock.mut = &sync.Mutex{}
 
 	resp, err := mock.UpdateConfig(context.Background(), &pb.Config{ConfigType: "mongodb"})
 	assert.Equal(t, &pb.Responce{Status: "OK"}, resp)
