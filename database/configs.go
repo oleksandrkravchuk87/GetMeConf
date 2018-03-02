@@ -1,5 +1,6 @@
 package database
 
+//Mongodb is an random config example
 type Mongodb struct {
 	Domain  string `json:"domain"`
 	Mongodb bool   `json:"mongodb"`
@@ -7,6 +8,7 @@ type Mongodb struct {
 	Port    string `json:"port"`
 }
 
+//Tsconfig is an random config example
 type Tsconfig struct {
 	Module    string `json:"module"`
 	Target    string `json:"target"`
@@ -14,6 +16,7 @@ type Tsconfig struct {
 	Excluding int    `json:"excluding"`
 }
 
+//Tempconfig is an random config example
 type Tempconfig struct {
 	RestApiRoot    string `json:"restApiRoot"`
 	Host           string `json:"host"`
@@ -22,6 +25,7 @@ type Tempconfig struct {
 	LegasyExplorer bool   `json:"legasyExplorer"`
 }
 
+//ConfigInterface is an interface for all config structures
 type ConfigInterface interface {
 }
 

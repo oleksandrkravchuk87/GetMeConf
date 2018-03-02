@@ -40,9 +40,9 @@ services:
   restart: always
   networks:
    - conf_net
-  environment:
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: root
+#  environment:
+#   - POSTGRES_USER=postgres
+#   - POSTGRES_PASSWORD=root
   volumes:
     - /tmp/pgdata:/var/lib/postgresql/data
 

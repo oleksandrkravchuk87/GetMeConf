@@ -9,6 +9,10 @@ import (
 	"errors"
 	"strings"
 
+	"encoding/json"
+
+	"strconv"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"gopkg.in/gormigrate.v1"
@@ -21,9 +25,9 @@ func initConfigDataMap() {
 		return
 	}
 	factory = map[string]PersistedData{
-		"mongodb":    PersistedData{ConfigType: new(Mongodb), IDField: "domain"},
-		"tempconfig": PersistedData{ConfigType: new(Tempconfig), IDField: "host"},
-		"tsconfig":   PersistedData{ConfigType: new(Tsconfig), IDField: "module"},
+		"mongodb":    {ConfigType: new(Mongodb), IDField: "domain"},
+		"tempconfig": {ConfigType: new(Tempconfig), IDField: "host"},
+		"tsconfig":   {ConfigType: new(Tsconfig), IDField: "module"},
 	}
 }
 
@@ -54,56 +58,36 @@ func InitPostgresDB(cfg PostgresConfig) (db *gorm.DB, err error) {
 }
 
 func gormMigrate(db *gorm.DB) error {
-
-	db.LogMode(true)
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
-			ID: "1",
+			ID: "Initial",
 			Migrate: func(tx *gorm.DB) error {
 				type Mongodb struct {
-					gorm.Model
-					Domain  string
+					//gorm.Model
+					Domain  string `gorm:"primary_key"`
 					Mongodb bool
 					Host    string
 					Port    string
 				}
-				return tx.AutoMigrate(&Mongodb{}).Error
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("mongodbs").Error
-			},
-		},
-		{
-			ID: "2",
-			Migrate: func(tx *gorm.DB) error {
 				type Tsconfig struct {
-					gorm.Model
-					Module    string
+					//gorm.Model
+					Module    string `gorm:"primary_key"`
 					Target    string
-					SourseMap bool
-					Exclude   int
+					SourceMap bool
+					Excluding int
 				}
-				return tx.AutoMigrate(&Tsconfig{}).Error
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("tsconfigs").Error
-			},
-		},
-		{
-			ID: "3",
-			Migrate: func(tx *gorm.DB) error {
 				type Tempconfig struct {
-					gorm.Model
-					RestApiRoot    string
+					//gorm.Model
+					RestApiRoot    string `gorm:"primary_key"`
 					Host           string
 					Port           string
 					Remoting       string
 					LegasyExplorer bool
 				}
-				return tx.AutoMigrate(&Tempconfig{}).Error
+				return tx.AutoMigrate(&Mongodb{}, &Tsconfig{}, &Tempconfig{}).Error
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("tempconfigs").Error
+				return tx.DropTable("mongodbs", "tsconfigs", "tempconfigs").Error
 			},
 		},
 	})
@@ -116,15 +100,13 @@ func gormMigrate(db *gorm.DB) error {
 	return err
 }
 
-//GetConfigByNameFromDB(confName string, confType string) searches a config in database using the type of the config and a unique name
+//GetConfigByNameFromDB searches a config in database using the type of the config and a unique name
 func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (ConfigInterface, error) {
 	cType := strings.ToLower(confType)
 	configStruct, ok := factory[cType]
 	if !ok {
+
 		return nil, errors.New("unexpected config type")
-	}
-	if !db.HasTable(configStruct.ConfigType) {
-		return nil, errors.New("could not find table " + cType)
 	}
 	result := configStruct.ConfigType
 	err := db.Where(configStruct.IDField+" = ?", confName).Find(result).Error
@@ -134,7 +116,7 @@ func GetConfigByNameFromDB(confName string, confType string, db *gorm.DB) (Confi
 	return result, nil
 }
 
-//GetMongoDBConfigs(db *gorm.DB) searches for all Mongodb configs in database
+//GetMongoDBConfigs searches for all Mongodb configs in database
 func GetMongoDBConfigs(db *gorm.DB) ([]Mongodb, error) {
 	var confSlice []Mongodb
 	err := db.Find(&confSlice).Error
@@ -144,7 +126,7 @@ func GetMongoDBConfigs(db *gorm.DB) ([]Mongodb, error) {
 	return confSlice, nil
 }
 
-//GetTempConfigs(db *gorm.DB) searches for all TempConfig in database
+//GetTempConfigs searches for all TempConfig in database
 func GetTempConfigs(db *gorm.DB) ([]Tempconfig, error) {
 	var confSlice []Tempconfig
 	err := db.Find(&confSlice).Error
@@ -154,7 +136,7 @@ func GetTempConfigs(db *gorm.DB) ([]Tempconfig, error) {
 	return confSlice, nil
 }
 
-//GetTsconfigs(db *gorm.DB) searches for all Tsconfigs in database
+//GetTsconfigs searches for all Tsconfigs in database
 func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
 	var confSlice []Tsconfig
 	err := db.Find(&confSlice).Error
@@ -164,69 +146,111 @@ func GetTsconfigs(db *gorm.DB) ([]Tsconfig, error) {
 	return confSlice, nil
 }
 
-//-----------------------------------------------------
+//SaveConfigToDB saves new config record to the database
+func SaveConfigToDB(confType string, config []byte, db *gorm.DB) (string, error) {
+	cType := strings.ToLower(confType)
+	configStruct, ok := factory[cType]
+	log.Printf("configStruct: %v", configStruct)
 
-//func GetConfigsByTypeFromDB(confType string) ([]configInterface, error) {
-//	type persistedData struct {
-//		configType configInterface
-//		idField    string
-//	}
-//	var factory = map[string]persistedData{
-//		"mongodb":    persistedData{new(dataStructs.Mongodb), "domain"},
-//		"tempconfig": persistedData{new(dataStructs.TempConfig), "host"},
-//		"tsconfig":   persistedData{new(dataStructs.Tsconfig), "module"},
-//	}
-//
-//	cType := strings.ToLower(confType)
-//	configStruct, ok := factory[cType]
-//	if !ok {
-//		return nil, errors.New("unexpected config type")
-//	}
-//	if !db.HasTable(configStruct.configType) {
-//		return nil, errors.New("could not find table " + cType)
-//	}
-//
-//	structType := reflect.TypeOf(configStruct.configType)
-//	value := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0)
-//	structSlice := reflect.New(value.Type())
-//	structSlice.Elem().Set(value)
-//
-//	rows, err := db.Find(structSlice.Interface()).Rows()
-//	rows.Scan()
-//	//err := db.Find(structSlice.Interface()).Error
-//
-//	if err != nil {
-//		log.Println(err)
-//		return nil, err
-//	}
-//
-//	log.Println(structSlice)
-//	return structSlice.Interface().([]configInterface), nil
-//}
+	if !ok {
+		return "", errors.New("unexpected config type")
+	}
+	configTypeStr := configStruct.ConfigType
+	err := json.Unmarshal(config, configTypeStr)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Create(configTypeStr).Error
+	if err != nil {
+		log.Printf("error during saving to database: %v", err)
+		return "", err
+	}
+	return "OK", nil
+}
 
-//
-//func (db *dbConnection) GetAllRuleDefinition() ([]RuleDefinition, error) {
-//	ruleDefinitions := make([]RuleDefinition, 0)
-//	var ruleDefinition RuleDefinition
-//	rows, err := db.Table("RULE_DEFINITION").Rows()
-//	if err != nil {
-//		return nil, err
-//	}
-//	for rows.Next() {
-//		err = rows.Scan(&ruleDefinition)
-//		if err != nil {
-//			return nil, err
-//		}
-//		ruleDefinitions = append(ruleDefinitions, ruleDefinition)
-//	}
-//	return ruleDefinitions, nil
-//}
-//
-//func (db *dbConnection) GetRuleDefinitionByID(ruleDefinitionID string) (*RuleDefinition, error) {
-//	var ruleDefinition RuleDefinition
-//	err := db.Where("RULE_PCD = ?", ruleDefinitionID).First(&ruleDefinition).Error
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &ruleDefinition, nil
-//}
+//DeleteConfigFromDB removes config record from database
+func DeleteConfigFromDB(confName, confType string, db *gorm.DB) (string, error) {
+	cType := strings.ToLower(confType)
+	configStruct, ok := factory[cType]
+	if !ok {
+		return "", errors.New("unexpected config type")
+	}
+	result := configStruct.ConfigType
+	rowsAffected := db.Delete(result, configStruct.IDField+" = ?", confName).RowsAffected
+	if rowsAffected < 1 {
+		return "", errors.New("could not delete from database")
+	}
+	return fmt.Sprintf("deleted %d row(s)", rowsAffected), nil
+}
+
+//UpdateMongoDBConfigInDB updates a record in database, rewriting the fields if string fields are not empty
+func UpdateMongoDBConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
+	var newConfig, persistedConfig Mongodb
+	err := json.Unmarshal(configBytes, &newConfig)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Where("domain = ?", newConfig.Domain).Find(&persistedConfig).Error
+	if err != nil {
+		return "", err
+	}
+
+	if newConfig.Host != "" && newConfig.Port != "" {
+		err = db.Exec("UPDATE mongodbs SET mongodb = ?, port = ?, host = ? WHERE domain = ?", strconv.FormatBool(newConfig.Mongodb), newConfig.Port, newConfig.Host, persistedConfig.Domain).Error
+		if err != nil {
+			log.Printf("error during saving to database: %v", err)
+			return "", err
+		}
+		return "OK", nil
+	}
+	return "", errors.New("fields are empty")
+
+}
+
+//UpdateTempConfigInDB updates a record in database, rewriting the fields if string fields are not empty
+func UpdateTempConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
+	var newConfig, persistedConfig Tempconfig
+	err := json.Unmarshal(configBytes, &newConfig)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Where("rest_api_root = ?", newConfig.RestApiRoot).Find(&persistedConfig).Error
+	if err != nil {
+		return "", err
+	}
+	if newConfig.Host != "" && newConfig.Port != "" && newConfig.Remoting != "" {
+		err = db.Exec("UPDATE tempconfigs SET remoting = ?, port = ?, host = ?, legasy_explorer = ? WHERE rest_api_root = ?", newConfig.Remoting, newConfig.Port, newConfig.Host, strconv.FormatBool(newConfig.LegasyExplorer), persistedConfig.RestApiRoot).Error
+		if err != nil {
+			log.Printf("error during saving to database: %v", err)
+			return "", err
+		}
+		return "OK", nil
+	}
+	return "", errors.New("fields are empty")
+}
+
+//UpdateTsConfigInDB updates a record in database, rewriting the fields if string fields are not empty
+func UpdateTsConfigInDB(configBytes []byte, db *gorm.DB) (string, error) {
+	var newConfig, persistedConfig Tsconfig
+	err := json.Unmarshal(configBytes, &newConfig)
+	if err != nil {
+		log.Printf("unmarshal config err: %v", err)
+		return "", err
+	}
+	err = db.Where("module = ?", newConfig.Module).Find(&persistedConfig).Error
+	if err != nil {
+		return "", err
+	}
+	if newConfig.Target != "" {
+		err = db.Exec("UPDATE tsconfigs SET target = ?, source_map = ?, excluding = ? WHERE module = ?", newConfig.Target, strconv.FormatBool(newConfig.SourceMap), strconv.Itoa(newConfig.Excluding), persistedConfig.Module).Error
+		if err != nil {
+			log.Printf("error during saving to database: %v", err)
+			return "", err
+		}
+		return "OK", nil
+	}
+	return "", errors.New("fields are empty")
+}
