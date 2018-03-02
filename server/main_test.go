@@ -98,13 +98,16 @@ func TestGetConfigsByType(t *testing.T) {
 
 	mock := &mockConfigServer{}
 
-	mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "mongodb"}, mock)
+	err := mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "mongodb"}, mock)
 	assert.Equal(t, 1, len(mock.Results), "expected to contain 1 item")
-	mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "tsconfig"}, mock)
+	err = mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "tsconfig"}, mock)
 	assert.Equal(t, 2, len(mock.Results), "expected to contain 1 item")
-	mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "tempconfig"}, mock)
+	err = mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "tempconfig"}, mock)
 	assert.Equal(t, 3, len(mock.Results), "expected to contain 1 item")
-	err := mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "unexpectedConfigType"}, mock)
+	if err != nil {
+		t.Error("error during unit testing of GetConfigsByType function: ", err)
+	}
+	err = mock.GetConfigsByType(&pb.GetConfigsByTypeRequest{ConfigType: "unexpectedConfigType"}, mock)
 	if assert.Error(t, err) {
 		assert.Equal(t, errors.New("unexpacted type"), err)
 	}
