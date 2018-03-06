@@ -42,3 +42,5 @@ tests:
 	go test ./service
 	go test ./repository
 
+docker-build:
+	docker build -t configservice . && docker run configservice

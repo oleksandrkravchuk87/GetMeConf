@@ -4,7 +4,7 @@ services:
  serverapp:
   build:
    context: "."
-   dockerfile: "server.Dockerfile"
+   dockerfile: "Dockerfile"
   networks:
    - conf_net
   ports:
@@ -16,7 +16,7 @@ services:
 # clientapp:
 #  build:
 #   context: "."
-#   dockerfile: "client/client.server.Dockerfile"
+#   dockerfile: "client/client.Dockerfile"
 #  networks:
 #   - conf_net
 #  depends_on:
