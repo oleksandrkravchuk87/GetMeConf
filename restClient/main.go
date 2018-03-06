@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"github.com/YAWAL/GetMeConf/api"
-	"github.com/YAWAL/GetMeConf/database"
+	"github.com/YAWAL/GetMeConf/entitys"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -127,21 +127,21 @@ func main() {
 
 }
 
-func selectType(cType string) (database.ConfigInterface, error) {
+func selectType(cType string) (entitys.ConfigInterface, error) {
 	switch cType {
 	case mongoConf:
-		return new(database.Mongodb), nil
+		return new(entitys.Mongodb), nil
 	case tempConf:
-		return new(database.Tempconfig), nil
+		return new(entitys.Tempconfig), nil
 	case tsConf:
-		return new(database.Tsconfig), nil
+		return new(entitys.Tsconfig), nil
 	default:
 		log.Printf("Such config: %v does not exist", cType)
 		return nil, errors.New("config does not exist")
 	}
 }
 
-func retrieveConfig(configName, configType *string, client api.ConfigServiceClient) (database.ConfigInterface, error) {
+func retrieveConfig(configName, configType *string, client api.ConfigServiceClient) (entitys.ConfigInterface, error) {
 	config, err := client.GetConfigByName(context.Background(), &api.GetConfigByNameRequest{ConfigName: *configName, ConfigType: *configType})
 	if err != nil {
 		log.Printf("Error during retrieving config has occurred: %v", err)
@@ -149,7 +149,7 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 	}
 	switch *configType {
 	case mongoConf:
-		var mongodb database.Mongodb
+		var mongodb entitys.Mongodb
 		err := json.Unmarshal(config.Config, &mongodb)
 		if err != nil {
 			log.Printf("Unmarshal mongodb err: %v", err)
@@ -157,7 +157,7 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 		}
 		return mongodb, err
 	case tempConf:
-		var tempconfig database.Tempconfig
+		var tempconfig entitys.Tempconfig
 		err := json.Unmarshal(config.Config, &tempconfig)
 		if err != nil {
 			log.Printf("Unmarshal tempconfig err: %v", err)
@@ -165,7 +165,7 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 		}
 		return tempconfig, err
 	case tsConf:
-		var tsconfig database.Tsconfig
+		var tsconfig entitys.Tsconfig
 		err := json.Unmarshal(config.Config, &tsconfig)
 		if err != nil {
 			log.Printf("Unmarshal tsconfig err: %v", err)
@@ -178,13 +178,13 @@ func retrieveConfig(configName, configType *string, client api.ConfigServiceClie
 	}
 }
 
-func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]database.ConfigInterface, error) {
+func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]entitys.ConfigInterface, error) {
 	stream, err := client.GetConfigsByType(context.Background(), &api.GetConfigsByTypeRequest{ConfigType: *configType})
 	if err != nil {
 		log.Printf("Error during retrieving stream configs has occurred:%v", err)
 		return nil, err
 	}
-	var resultConfigs []database.ConfigInterface
+	var resultConfigs []entitys.ConfigInterface
 	for {
 		config, err := stream.Recv()
 		if err == io.EOF {
@@ -196,7 +196,7 @@ func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]data
 		}
 		switch *configType {
 		case mongoConf:
-			var mongodb database.Mongodb
+			var mongodb entitys.Mongodb
 			err := json.Unmarshal(config.Config, &mongodb)
 			if err != nil {
 				log.Printf("Unmarshal mongodb err: %v", err)
@@ -204,7 +204,7 @@ func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]data
 			}
 			resultConfigs = append(resultConfigs, mongodb)
 		case tempConf:
-			var tempconfig database.Tempconfig
+			var tempconfig entitys.Tempconfig
 			err := json.Unmarshal(config.Config, &tempconfig)
 			if err != nil {
 				log.Printf("Unmarshal tempconfig err: %v", err)
@@ -212,7 +212,7 @@ func retrieveConfigs(configType *string, client api.ConfigServiceClient) ([]data
 			}
 			resultConfigs = append(resultConfigs, tempconfig)
 		case tsConf:
-			var tsconfig database.Tsconfig
+			var tsconfig entitys.Tsconfig
 			err := json.Unmarshal(config.Config, &tsconfig)
 			if err != nil {
 				log.Printf("Unmarshal tsconfig err: %v", err)
