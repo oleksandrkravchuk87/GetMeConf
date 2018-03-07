@@ -15,6 +15,9 @@ import (
 
 	"strconv"
 
+	"os/signal"
+	"syscall"
+
 	"github.com/YAWAL/GetMeConf/entities"
 	"github.com/YAWAL/GetMeConf/repository"
 	"github.com/patrickmn/go-cache"
@@ -295,9 +298,15 @@ func main() {
 	configCache := cache.New(time.Duration(cacheExpirationTime)*time.Minute, time.Duration(cacheCleanupInterval)*time.Minute)
 
 	pb.RegisterConfigServiceServer(grpcServer, &configServer{configCache: configCache, mongoDBConfigRepo: &mongoDBRepo, tsConfigRepo: &tsConfigRepo, tempConfigRepo: &tempConfigRepo})
-	defer grpcServer.GracefulStop()
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		log.Fatalf("filed to serve: %v", err)
-	}
+
+	go func() {
+		log.Fatal(grpcServer.Serve(lis))
+	}()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	<-signalChan
+
+	log.Println("shotdown signal received, exiting")
+	grpcServer.GracefulStop()
 }

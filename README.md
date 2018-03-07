@@ -3,7 +3,10 @@ Config service
 ==============
 
 
-This is a simple config service, which allows storage of configs in database.
+This is a simple config service, which allows basic CRUD operations for different configs. Configs are stored in a Postgres database.
+gRPC is used to communicate with the service.
+
+  
 
 
 How to start
