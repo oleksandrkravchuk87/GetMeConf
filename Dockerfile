@@ -30,13 +30,13 @@ ENV CACHE_EXPIRATION_TIME=5
 ENV CACHE_CLEANUP_INTERVAL=10
 
 RUN mkdir -p $GOPATH/src/service \
-&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/entitys \
+&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/entities \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/repository \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
 
 
 ADD ./service $GOPATH/src/service
-ADD ./entitys $GOPATH/src/github.com/YAWAL/GetMeConf/entitys
+ADD entities $GOPATH/src/github.com/YAWAL/GetMeConf/entities
 ADD ./repository $GOPATH/src/github.com/YAWAL/GetMeConf/repository
 ADD ./api $GOPATH/src/github.com/YAWAL/GetMeConf/api
 

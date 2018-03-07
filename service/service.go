@@ -15,7 +15,7 @@ import (
 
 	"strconv"
 
-	"github.com/YAWAL/GetMeConf/entitys"
+	"github.com/YAWAL/GetMeConf/entities"
 	"github.com/YAWAL/GetMeConf/repository"
 	"github.com/patrickmn/go-cache"
 	"golang.org/x/net/context"
@@ -49,7 +49,7 @@ func (s *configServer) GetConfigByName(ctx context.Context, nameRequest *pb.GetC
 		return configResponse.(*pb.GetConfigResponce), nil
 	}
 	var err error
-	var res entitys.ConfigInterface
+	var res entities.ConfigInterface
 
 	switch nameRequest.ConfigType {
 	case mongodb:
@@ -136,7 +136,7 @@ func (s *configServer) GetConfigsByType(typeRequest *pb.GetConfigsByTypeRequest,
 func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb.Responce, error) {
 	switch config.ConfigType {
 	case mongodb:
-		configStr := entitys.Mongodb{}
+		configStr := entities.Mongodb{}
 		err := json.Unmarshal(config.Config, &configStr)
 		if err != nil {
 			log.Printf("unmarshal config err: %v", err)
@@ -150,7 +150,7 @@ func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb
 		return &pb.Responce{Status: response}, nil
 
 	case tempconfig:
-		configStr := entitys.Tempconfig{}
+		configStr := entities.Tempconfig{}
 		err := json.Unmarshal(config.Config, &configStr)
 		if err != nil {
 			log.Printf("unmarshal config err: %v", err)
@@ -164,7 +164,7 @@ func (s *configServer) CreateConfig(ctx context.Context, config *pb.Config) (*pb
 		return &pb.Responce{Status: response}, nil
 
 	case tsconfig:
-		configStr := entitys.Tsconfig{}
+		configStr := entities.Tsconfig{}
 		err := json.Unmarshal(config.Config, &configStr)
 		if err != nil {
 			log.Printf("unmarshal config err: %v", err)
@@ -217,7 +217,7 @@ func (s *configServer) UpdateConfig(ctx context.Context, config *pb.Config) (*pb
 	var status string
 	switch config.ConfigType {
 	case mongodb:
-		configStr := entitys.Mongodb{}
+		configStr := entities.Mongodb{}
 		err := json.Unmarshal(config.Config, &configStr)
 		if err != nil {
 			log.Printf("unmarshal config err: %v", err)
@@ -228,7 +228,7 @@ func (s *configServer) UpdateConfig(ctx context.Context, config *pb.Config) (*pb
 			return nil, err
 		}
 	case tempconfig:
-		configStr := entitys.Tempconfig{}
+		configStr := entities.Tempconfig{}
 		err := json.Unmarshal(config.Config, &configStr)
 		if err != nil {
 			log.Printf("unmarshal config err: %v", err)
@@ -239,7 +239,7 @@ func (s *configServer) UpdateConfig(ctx context.Context, config *pb.Config) (*pb
 			return nil, err
 		}
 	case tsconfig:
-		configStr := entitys.Tsconfig{}
+		configStr := entities.Tsconfig{}
 		err := json.Unmarshal(config.Config, &configStr)
 		if err != nil {
 			log.Printf("unmarshal config err: %v", err)

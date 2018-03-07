@@ -1,4 +1,4 @@
-package entitys
+package entities
 
 //Mongodb is an random config example
 type Mongodb struct {

@@ -11,7 +11,7 @@ import (
 
 	"errors"
 
-	"github.com/YAWAL/GetMeConf/entitys"
+	"github.com/YAWAL/GetMeConf/entities"
 	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
@@ -20,19 +20,19 @@ import (
 type mockMongoDBConfigRepo struct {
 }
 
-func (m *mockMongoDBConfigRepo) Find(configName string) (*entitys.Mongodb, error) {
-	return &entitys.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}, nil
+func (m *mockMongoDBConfigRepo) Find(configName string) (*entities.Mongodb, error) {
+	return &entities.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}, nil
 }
 
-func (m *mockMongoDBConfigRepo) FindAll() ([]entitys.Mongodb, error) {
-	return []entitys.Mongodb{{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}}, nil
+func (m *mockMongoDBConfigRepo) FindAll() ([]entities.Mongodb, error) {
+	return []entities.Mongodb{{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}}, nil
 }
 
-func (m *mockMongoDBConfigRepo) Update(config *entitys.Mongodb) (string, error) {
+func (m *mockMongoDBConfigRepo) Update(config *entities.Mongodb) (string, error) {
 	return "OK", nil
 }
 
-func (m *mockMongoDBConfigRepo) Save(config *entitys.Mongodb) (string, error) {
+func (m *mockMongoDBConfigRepo) Save(config *entities.Mongodb) (string, error) {
 	return "OK", nil
 }
 
@@ -43,19 +43,19 @@ func (m *mockMongoDBConfigRepo) Delete(configName string) (string, error) {
 type mockErrorMongoDBConfigRepo struct {
 }
 
-func (m *mockErrorMongoDBConfigRepo) Find(configName string) (*entitys.Mongodb, error) {
+func (m *mockErrorMongoDBConfigRepo) Find(configName string) (*entities.Mongodb, error) {
 	return nil, errors.New("error from database querying")
 }
 
-func (m *mockErrorMongoDBConfigRepo) FindAll() ([]entitys.Mongodb, error) {
+func (m *mockErrorMongoDBConfigRepo) FindAll() ([]entities.Mongodb, error) {
 	return nil, errors.New("error from database querying")
 }
 
-func (m *mockErrorMongoDBConfigRepo) Update(config *entitys.Mongodb) (string, error) {
+func (m *mockErrorMongoDBConfigRepo) Update(config *entities.Mongodb) (string, error) {
 	return "", errors.New("error from database querying")
 }
 
-func (m *mockErrorMongoDBConfigRepo) Save(config *entitys.Mongodb) (string, error) {
+func (m *mockErrorMongoDBConfigRepo) Save(config *entities.Mongodb) (string, error) {
 	return "", errors.New("error from database querying")
 }
 func (m *mockErrorMongoDBConfigRepo) Delete(configName string) (string, error) {
@@ -65,19 +65,19 @@ func (m *mockErrorMongoDBConfigRepo) Delete(configName string) (string, error) {
 type mockTsConfigRepo struct {
 }
 
-func (m *mockTsConfigRepo) Find(configName string) (*entitys.Tsconfig, error) {
-	return &entitys.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}, nil
+func (m *mockTsConfigRepo) Find(configName string) (*entities.Tsconfig, error) {
+	return &entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}, nil
 }
 
-func (m *mockTsConfigRepo) FindAll() ([]entitys.Tsconfig, error) {
-	return []entitys.Tsconfig{{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}}, nil
+func (m *mockTsConfigRepo) FindAll() ([]entities.Tsconfig, error) {
+	return []entities.Tsconfig{{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}}, nil
 }
 
-func (m *mockTsConfigRepo) Update(config *entitys.Tsconfig) (string, error) {
+func (m *mockTsConfigRepo) Update(config *entities.Tsconfig) (string, error) {
 	return "OK", nil
 }
 
-func (m *mockTsConfigRepo) Save(config *entitys.Tsconfig) (string, error) {
+func (m *mockTsConfigRepo) Save(config *entities.Tsconfig) (string, error) {
 	return "OK", nil
 }
 
@@ -88,19 +88,19 @@ func (m *mockTsConfigRepo) Delete(configName string) (string, error) {
 type mockErrorTsConfigRepo struct {
 }
 
-func (m *mockErrorTsConfigRepo) Find(configName string) (*entitys.Tsconfig, error) {
+func (m *mockErrorTsConfigRepo) Find(configName string) (*entities.Tsconfig, error) {
 	return nil, errors.New("error from database querying")
 }
 
-func (m *mockErrorTsConfigRepo) FindAll() ([]entitys.Tsconfig, error) {
+func (m *mockErrorTsConfigRepo) FindAll() ([]entities.Tsconfig, error) {
 	return nil, errors.New("error from database querying")
 }
 
-func (m *mockErrorTsConfigRepo) Update(config *entitys.Tsconfig) (string, error) {
+func (m *mockErrorTsConfigRepo) Update(config *entities.Tsconfig) (string, error) {
 	return "", errors.New("error from database querying")
 }
 
-func (m *mockErrorTsConfigRepo) Save(config *entitys.Tsconfig) (string, error) {
+func (m *mockErrorTsConfigRepo) Save(config *entities.Tsconfig) (string, error) {
 	return "", errors.New("error from database querying")
 }
 func (m *mockErrorTsConfigRepo) Delete(configName string) (string, error) {
@@ -110,19 +110,19 @@ func (m *mockErrorTsConfigRepo) Delete(configName string) (string, error) {
 type mockTempConfigRepo struct {
 }
 
-func (m *mockTempConfigRepo) Find(configName string) (*entitys.Tempconfig, error) {
-	return &entitys.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}, nil
+func (m *mockTempConfigRepo) Find(configName string) (*entities.Tempconfig, error) {
+	return &entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}, nil
 }
 
-func (m *mockTempConfigRepo) FindAll() ([]entitys.Tempconfig, error) {
-	return []entitys.Tempconfig{{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}}, nil
+func (m *mockTempConfigRepo) FindAll() ([]entities.Tempconfig, error) {
+	return []entities.Tempconfig{{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}}, nil
 }
 
-func (m *mockTempConfigRepo) Update(config *entitys.Tempconfig) (string, error) {
+func (m *mockTempConfigRepo) Update(config *entities.Tempconfig) (string, error) {
 	return "OK", nil
 }
 
-func (m *mockTempConfigRepo) Save(config *entitys.Tempconfig) (string, error) {
+func (m *mockTempConfigRepo) Save(config *entities.Tempconfig) (string, error) {
 	return "OK", nil
 }
 
@@ -133,19 +133,19 @@ func (m *mockTempConfigRepo) Delete(configName string) (string, error) {
 type mockErrorTempConfigRepo struct {
 }
 
-func (m *mockErrorTempConfigRepo) Find(configName string) (*entitys.Tempconfig, error) {
+func (m *mockErrorTempConfigRepo) Find(configName string) (*entities.Tempconfig, error) {
 	return nil, errors.New("error from database querying")
 }
 
-func (m *mockErrorTempConfigRepo) FindAll() ([]entitys.Tempconfig, error) {
+func (m *mockErrorTempConfigRepo) FindAll() ([]entities.Tempconfig, error) {
 	return nil, errors.New("error from database querying")
 }
 
-func (m *mockErrorTempConfigRepo) Update(config *entitys.Tempconfig) (string, error) {
+func (m *mockErrorTempConfigRepo) Update(config *entities.Tempconfig) (string, error) {
 	return "", errors.New("error from database querying")
 }
 
-func (m *mockErrorTempConfigRepo) Save(config *entitys.Tempconfig) (string, error) {
+func (m *mockErrorTempConfigRepo) Save(config *entities.Tempconfig) (string, error) {
 	return "", errors.New("error from database querying")
 }
 func (m *mockErrorTempConfigRepo) Delete(configName string) (string, error) {
@@ -166,7 +166,7 @@ func TestGetConfigByName(t *testing.T) {
 		t.Error("error during unit testing: ", err)
 	}
 	var expectedConfig []byte
-	expectedConfig, err = json.Marshal(entitys.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"})
+	expectedConfig, err = json.Marshal(entities.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"})
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
@@ -176,7 +176,7 @@ func TestGetConfigByName(t *testing.T) {
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
-	expectedConfig, err = json.Marshal(entitys.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1})
+	expectedConfig, err = json.Marshal(entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1})
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
@@ -186,7 +186,7 @@ func TestGetConfigByName(t *testing.T) {
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
-	expectedConfig, err = json.Marshal(entitys.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true})
+	expectedConfig, err = json.Marshal(entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true})
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
@@ -218,7 +218,7 @@ func TestGetConfigByName(t *testing.T) {
 
 func TestGetConfigByName_FromCache(t *testing.T) {
 	testName := "testName"
-	testConf := entitys.Mongodb{Domain: testName, Mongodb: true, Host: "testHost", Port: "testPort"}
+	testConf := entities.Mongodb{Domain: testName, Mongodb: true, Host: "testHost", Port: "testPort"}
 	configCache := cache.New(5*time.Minute, 10*time.Minute)
 	mock := &mockConfigServer{}
 	mock.configCache = configCache
@@ -234,7 +234,7 @@ func TestGetConfigByName_FromCache(t *testing.T) {
 		t.Error("error during unit testing: ", err)
 	}
 	var expectedConfig []byte
-	expectedConfig, err = json.Marshal(entitys.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"})
+	expectedConfig, err = json.Marshal(entities.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"})
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
@@ -311,7 +311,7 @@ func TestCreateConfig(t *testing.T) {
 	mock.tsConfigRepo = &mockTsConfigRepo{}
 	mock.tempConfigRepo = &mockTempConfigRepo{}
 
-	testConfMongo := entitys.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}
+	testConfMongo := entities.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}
 	byteRes, err := json.Marshal(testConfMongo)
 	if err != nil {
 		t.Error("error during unit testing: ", err)
@@ -324,7 +324,7 @@ func TestCreateConfig(t *testing.T) {
 	expectedResponse := &pb.Responce{Status: "OK"}
 	assert.Equal(t, expectedResponse, res)
 
-	testConfTs := entitys.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	testConfTs := entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
 	byteRes, err = json.Marshal(testConfTs)
 	if err != nil {
 		t.Error("error during unit testing: ", err)
@@ -336,7 +336,7 @@ func TestCreateConfig(t *testing.T) {
 	}
 	assert.Equal(t, expectedResponse, res)
 
-	testConfTemp := entitys.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	testConfTemp := entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	byteRes, err = json.Marshal(testConfTemp)
 	if err != nil {
 		t.Error("error during unit testing: ", err)
@@ -438,17 +438,17 @@ func TestUpdateConfig(t *testing.T) {
 	mock.tsConfigRepo = &mockTsConfigRepo{}
 	mock.tempConfigRepo = &mockTempConfigRepo{}
 
-	testConfMongo := entitys.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}
+	testConfMongo := entities.Mongodb{Domain: "testName", Mongodb: true, Host: "testHost", Port: "testPort"}
 	byteResMongo, err := json.Marshal(testConfMongo)
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
-	testConfTs := entitys.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	testConfTs := entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
 	byteResTs, err := json.Marshal(testConfTs)
 	if err != nil {
 		t.Error("error during unit testing: ", err)
 	}
-	testConfTemp := entitys.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	testConfTemp := entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	byteResTemp, err := json.Marshal(testConfTemp)
 	if err != nil {
 		t.Error("error during unit testing: ", err)
