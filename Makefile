@@ -24,7 +24,6 @@ build:
 .PHONY: run
 run:
 	echo "Running service"
-	echo ${PDB_HOST}
 	go build -o ${GOPATH}/src/github.com/YAWAL/GetMeConf/bin/cService ./service
 	./bin/cService
 
