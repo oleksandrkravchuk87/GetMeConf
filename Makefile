@@ -8,10 +8,11 @@ export MAX_OPENED_CONNECTIONS_TO_DB=5
 export MAX_IDLE_CONNECTIONS_TO_DB=0
 export MB_CONN_MAX_LIFETIME_MINUTES=30
 
+
 export CACHE_EXPIRATION_TIME=5
 export CACHE_CLEANUP_INTERVAL=10
 
-export PORT=3000
+export SERVICE_PORT=3000
 
 all: dependencies build
 
@@ -43,4 +44,5 @@ tests:
 	go test ./repository
 
 docker-build:
-	docker build -t configservice . && docker run configservice
+	docker build -t configservice . && docker run -p ${SERVICE_PORT}:${SERVICE_PORT} configservice
+

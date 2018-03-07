@@ -259,7 +259,7 @@ func (s *configServer) UpdateConfig(ctx context.Context, config *pb.Config) (*pb
 
 func main() {
 
-	port := os.Getenv("PORT")
+	port := os.Getenv("SERVICE_PORT")
 	if port == "" {
 		log.Println("error during reading env. variable, default value is used")
 		port = defaultPort
@@ -279,7 +279,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to init postgres db: %v", err)
 	}
-	dbConn.LogMode(true)
 	mongoDBRepo := repository.MongoDBConfigRepoImpl{DB: dbConn}
 	tsConfigRepo := repository.TsConfigRepoImpl{DB: dbConn}
 	tempConfigRepo := repository.TempConfigRepoImpl{DB: dbConn}
