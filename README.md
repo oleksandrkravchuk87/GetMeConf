@@ -42,5 +42,5 @@ make run
 To to run the application in docker container
 
 ``````````````````
-docker build -t configservice . && docker run configservice
+make docker-build
 ``````````````````
