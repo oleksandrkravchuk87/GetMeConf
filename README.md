@@ -11,13 +11,13 @@ gRPC is used to communicate with the service.
 
 How to start
 
-Run to install dep
+To install dep  dependency management tool run 
 
 ``````````````````
 make install dep
 ``````````````````
 
-Run to install application dependencies
+To install application dependencies run
 
 
 ``````````````````
@@ -42,7 +42,7 @@ To to run the application
 make run
 ``````````````````
 
-To to run the application in docker container
+To to run the application in a docker container
 
 ``````````````````
 make docker-build
