@@ -24,6 +24,12 @@
 #   go-tests = true
 #   unused-packages = true
 
+[metadata.heroku]
+  root-package = "github.com/YAWAL/GetMeConf"
+  go-version = "go1.9.3"
+  install = [ "." ]
+  ensure = "true"
+  additional-tools = []
 
 [[constraint]]
   name = "github.com/golang/protobuf"
@@ -48,10 +54,3 @@
 [[constraint]]
   name = "github.com/alecthomas/gometalinter"
 version = "2.0.5"
-
-[metadata.heroku]
-  root-package = "github.com/YAWAL/GetMeConf"
-  go-version = "go1.9.3"
-  install = [ "." ]
-  ensure = "true"
-  additional-tools = []
