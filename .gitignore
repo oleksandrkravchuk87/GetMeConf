@@ -19,3 +19,4 @@ out
 /vendor/
 /client/client
 /static-analysis.xml
+/server/server
