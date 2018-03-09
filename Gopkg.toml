@@ -25,7 +25,7 @@
 #   unused-packages = true
 
 [metadata.heroku]
-  root-package = "github.com/YAWAL/GetMeConf"
+  root-package = "github.com/YAWAL/GetMeConf/service"
   go-version = "go1.9.3"
   install = ["."]
   ensure = "true"
