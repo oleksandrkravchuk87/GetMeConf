@@ -1,4 +1,3 @@
-
 [![Build Status](https://travis-ci.org/YAWAL/GetMeConf.svg?branch=master)](https://travis-ci.org/YAWAL/GetMeConf)
 
 Config service
