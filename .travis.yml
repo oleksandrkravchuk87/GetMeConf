@@ -3,6 +3,6 @@ language: go
 go:
   - 1.9.x
 
-script: make dependencies
+script: make all
 
 script: make tests
