@@ -11,8 +11,8 @@ build:
 .PHONY: run
 run:
 	echo "Running service"
-	go build -o ${GOPATH}/src/github.com/YAWAL/GetMeConf/bin/cService ./service
-	./bin/cService
+	go build -o ${GOPATH}/src/github.com/YAWAL/GetMeConf/bin/service ./service
+	./bin/service
 
 .PHONY: dependencies
 dependencies:
