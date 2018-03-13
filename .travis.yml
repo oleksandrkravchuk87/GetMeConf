@@ -4,7 +4,7 @@ go:
   - 1.9.x
 
 install:
-  - go get -u github.com/golang/golang/dep/...
+  - go get -u github.com/golang/dep/...
   - dep ensure
 
 script: make tests
