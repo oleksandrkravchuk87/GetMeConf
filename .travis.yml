@@ -3,7 +3,7 @@ language: go
 go:
   - 1.9.x
 
-branch: travis
+branch: dev
 
 script: make dependencies
 
