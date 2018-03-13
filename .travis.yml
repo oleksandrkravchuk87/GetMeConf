@@ -5,6 +5,6 @@ go:
 
 branch: dev
 
-script: make dependencies
+script: go get "github.com/golang/protobuf/proto"
 
 script: make tests
