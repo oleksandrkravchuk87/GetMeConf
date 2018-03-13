@@ -5,6 +5,6 @@ go:
 
 branch: travis
 
-script: make all
+#script: make build
 
 script: make tests
