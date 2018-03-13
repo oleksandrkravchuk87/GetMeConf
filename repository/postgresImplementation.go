@@ -11,6 +11,8 @@ import (
 
 	"errors"
 
+	"net/url"
+
 	"github.com/YAWAL/GetMeConf/entities"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -18,6 +20,7 @@ import (
 )
 
 var (
+	defaultDbScheme                 = "postgres"
 	defaultDbHost                   = "horton.elephantsql.com"
 	defaultDbPort                   = "5432"
 	defaultDbUser                   = "dlxifkbx"
@@ -27,6 +30,19 @@ var (
 	defaultMaxIdleConnectionsToDb   = 0
 	defaultmbConnMaxLifetimeMinutes = 30
 )
+
+//serviceConfig structure contains the configuration information for the database
+type postgresConfig struct {
+	dbSchema                 string
+	dbHost                   string `yaml:"dbhost"`
+	dbPort                   string `yaml:"dbport"`
+	dbUser                   string `yaml:"dbUser"`
+	dbPassword               string `yaml:"dbPassword"`
+	dbName                   string `yaml:"dbName"`
+	maxOpenedConnectionsToDb int    `yaml:"maxOpenedConnectionsToDb"`
+	maxIdleConnectionsToDb   int    `yaml:"maxIdleConnectionsToDb"`
+	mbConnMaxLifetimeMinutes int    `yaml:"mbConnMaxLifetimeMinutes"`
+}
 
 //MongoDBConfigRepoImpl represents an implementation of a MongoDB configs repository
 type MongoDBConfigRepoImpl struct {
@@ -64,61 +80,81 @@ func NewTsConfigRepo(db *gorm.DB) TsConfigRepo {
 	}
 }
 
+func (c *postgresConfig) validate() {
+	if c.dbSchema == "" {
+		log.Println("error during reading env. variable, default value is used")
+		c.dbSchema = defaultDbScheme
+	}
+	if c.dbHost == "" {
+		log.Println("error during reading env. variable, default value is used")
+		c.dbHost = defaultDbHost
+	}
+	if c.dbPort == "" {
+		log.Println("error during reading env. variable, default value is used")
+		c.dbPort = defaultDbPort
+	}
+	if c.dbUser == "" {
+		log.Println("error during reading env. variable, default value is used")
+		c.dbUser = defaultDbUser
+	}
+	if c.dbPassword == "" {
+		log.Println("error during reading env. variable, default value is used")
+		c.dbPassword = defaultDbPassword
+	}
+	if c.dbName == "" {
+		log.Println("error during reading env. variable, default value is used")
+		c.dbName = defaultDbName
+	}
+	if c.maxOpenedConnectionsToDb == 0 {
+		log.Printf("maxOpenedConnectionsToDb = 0, default value is used")
+		c.maxOpenedConnectionsToDb = defaultMaxOpenedConnectionsToDb
+	}
+	if c.maxIdleConnectionsToDb == 0 {
+		log.Printf("maxIdleConnectionsToDb = 0, default value is used")
+		c.maxIdleConnectionsToDb = defaultMaxIdleConnectionsToDb
+	}
+	if c.mbConnMaxLifetimeMinutes == 0 {
+		log.Printf("mbConnMaxLifetimeMinutes = 0, default value is used")
+		c.mbConnMaxLifetimeMinutes = defaultmbConnMaxLifetimeMinutes
+	}
+}
+
 //InitPostgresDB initiates database connection using environmental variables
 func InitPostgresDB() (db *gorm.DB, err error) {
-	dbHost := os.Getenv("PDB_HOST")
-	if dbHost == "" {
-		log.Println("error during reading env. variable, default value is used")
-		dbHost = defaultDbHost
-	}
-	dbPort := os.Getenv("PDB_PORT")
-	if dbPort == "" {
-		log.Println("error during reading env. variable, default value is used")
-		dbPort = defaultDbPort
-	}
-	dbUser := os.Getenv("PDB_USER")
-	if dbUser == "" {
-		log.Println("error during reading env. variable, default value is used")
-		dbUser = defaultDbUser
-	}
-	dbPassword := os.Getenv("PDB_PASSWORD")
-	if dbPassword == "" {
-		log.Println("error during reading env. variable, default value is used")
-		dbPassword = defaultDbPassword
-	}
-	dbName := os.Getenv("PDB_NAME")
-	if dbName == "" {
-		log.Println("error during reading env. variable, default value is used")
-		dbName = defaultDbName
-	}
-	maxOpenedConnectionsToDb, err := strconv.Atoi(os.Getenv("MAX_OPENED_CONNECTIONS_TO_DB"))
+	c := new(postgresConfig)
+	c.dbSchema = os.Getenv("PDB_SCHEME")
+	c.dbHost = os.Getenv("PDB_HOST")
+	c.dbPort = os.Getenv("PDB_PORT")
+	c.dbUser = os.Getenv("PDB_USER")
+	c.dbPassword = os.Getenv("PDB_PASSWORD")
+	c.dbName = os.Getenv("PDB_NAME")
+	c.maxOpenedConnectionsToDb, err = strconv.Atoi(os.Getenv("MAX_OPENED_CONNECTIONS_TO_DB"))
 	if err != nil {
 		log.Printf("error during reading env. variable: %v, default value is used", err)
-		maxOpenedConnectionsToDb = defaultMaxOpenedConnectionsToDb
+		c.maxOpenedConnectionsToDb = 0
 	}
-	maxIdleConnectionsToDb, err := strconv.Atoi(os.Getenv("MAX_IDLE_CONNECTIONS_TO_DB"))
+	c.maxIdleConnectionsToDb, err = strconv.Atoi(os.Getenv("MAX_IDLE_CONNECTIONS_TO_DB"))
 	if err != nil {
 		log.Printf("error during reading env. variable: %v, default value is used", err)
-		maxIdleConnectionsToDb = defaultMaxIdleConnectionsToDb
+		c.maxIdleConnectionsToDb = 0
 	}
-	mbConnMaxLifetimeMinutes, err := strconv.Atoi(os.Getenv("MB_CONN_MAX_LIFETIME_MINUTES"))
+	c.mbConnMaxLifetimeMinutes, err = strconv.Atoi(os.Getenv("MB_CONN_MAX_LIFETIME_MINUTES"))
 	if err != nil {
 		log.Printf("error during reading env. variable: %v, default value is used", err)
-		mbConnMaxLifetimeMinutes = defaultmbConnMaxLifetimeMinutes
+		c.mbConnMaxLifetimeMinutes = 0
 	}
-	dbInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, dbUser, dbPassword, dbName)
-
-	db, err = gorm.Open("postgres", dbInfo)
+	c.validate()
+	dbInf := url.URL{Scheme: c.dbSchema, User: url.UserPassword(c.dbUser, c.dbPassword), Host: c.dbHost + ":" + c.dbPort, Path: c.dbName}
+	db, err = gorm.Open("postgres", dbInf.String())
 
 	if err != nil {
 		log.Printf("error during connection to postgres database has occurred: %v", err)
 		return nil, err
 	}
 
-	db.DB().SetMaxOpenConns(maxOpenedConnectionsToDb)
-	db.DB().SetMaxIdleConns(maxIdleConnectionsToDb)
-	db.DB().SetConnMaxLifetime(time.Minute * time.Duration(mbConnMaxLifetimeMinutes))
+	db.DB().SetMaxOpenConns(c.maxOpenedConnectionsToDb)
+	db.DB().SetMaxIdleConns(c.maxIdleConnectionsToDb)
+	db.DB().SetConnMaxLifetime(time.Minute * time.Duration(c.mbConnMaxLifetimeMinutes))
 	log.Printf("connection to postgres database has been established")
 
 	if err = gormMigrate(db); err != nil {
