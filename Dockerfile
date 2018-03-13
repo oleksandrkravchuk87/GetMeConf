@@ -8,17 +8,10 @@ ENV GOPATH=/go
 
 ENV PATH=$GOPATH/bin:$PATH
 
-#ENV PDB_HOST=getmeconf_db_1
-#ENV PDB_PORT=5432
-#ENV PDB_USER=postgres
-#ENV PDB_PASSWORD=root
-#ENV PDB_NAME=postgres
-
 RUN mkdir -p $GOPATH/src/service \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/entities \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/repository \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
-
 
 ADD ./service $GOPATH/src/service
 ADD entities $GOPATH/src/github.com/YAWAL/GetMeConf/entities
