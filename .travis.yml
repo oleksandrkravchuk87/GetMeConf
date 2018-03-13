@@ -1,0 +1,10 @@
+language: go
+
+go:
+  - 1.9.x
+
+branch: travis
+
+script: make all
+
+script: make tests
