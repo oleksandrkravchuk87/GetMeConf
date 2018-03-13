@@ -24,7 +24,11 @@
 #   go-tests = true
 #   unused-packages = true
 
-
+[metadata.heroku]
+  root-package = "github.com/YAWAL/GetMeConf"
+  go-version = "1.9.4"
+  install = [ "./..." ]
+  
 [[constraint]]
   name = "github.com/golang/protobuf"
   version = "1.0.0"
