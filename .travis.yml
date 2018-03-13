@@ -3,6 +3,7 @@ language: go
 go:
   - 1.9.x
 
-install: go get github.com/golang/protobuf/proto
+install:
+  - go get github.com/golang/protobuf/proto
 
 script: make tests
