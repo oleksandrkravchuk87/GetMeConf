@@ -30,4 +30,4 @@ RUN rm -rf /GOPATH/src && rm -rf /GOPATH/pkg
 
 CMD ["/go/bin/service"]
 
-EXPOSE $PORT
+EXPOSE $SERVICE_PORT
