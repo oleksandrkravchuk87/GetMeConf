@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/YAWAL/GetMeConf.svg?branch=master)](https://travis-ci.org/YAWAL/GetMeConf)
+[![Build Status](https://travis-ci.org/YAWAL/GetMeConf.svg?branch=master)](https://travis-ci.org/YAWAL/GetMeConf) [![Go Report Card](https://goreportcard.com/badge/github.com/YAWAL/GetMeConf)](https://goreportcard.com/report/github.com/YAWAL/GetMeConf)
 
 Config service
 ==============
