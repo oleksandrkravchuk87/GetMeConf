@@ -11,7 +11,7 @@ import (
 
 	"os"
 
-	pb "github.com/YAWAL/GetMeConf/api"
+	pb "github.com/YAWAL/GetMeConfAPI/api"
 
 	"strconv"
 

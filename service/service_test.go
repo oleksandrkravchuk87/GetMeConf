@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/YAWAL/GetMeConf/api"
+	pb "github.com/YAWAL/GetMeConfAPI/api"
 
 	"errors"
 

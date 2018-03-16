@@ -10,13 +10,11 @@ ENV PATH=$GOPATH/bin:$PATH
 
 RUN mkdir -p $GOPATH/src/service \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/entities \
-&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/repository \
-&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/api
+&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/repository
 
 ADD ./service $GOPATH/src/service
 ADD entities $GOPATH/src/github.com/YAWAL/GetMeConf/entities
 ADD ./repository $GOPATH/src/github.com/YAWAL/GetMeConf/repository
-ADD ./api $GOPATH/src/github.com/YAWAL/GetMeConf/api
 
 ADD ./vendor $GOPATH/src/vendor
 ADD ./Gopkg.lock $GOPATH/src/
