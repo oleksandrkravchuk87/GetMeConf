@@ -1,12 +1,10 @@
-FROM golang:1.9.2-alpine3.6 AS build
+FROM golang:1.9.2-alpine3.6 AS builder
 
 RUN mkdir -p /go/src \
 && mkdir -p /go/bin \
 && mkdir -p /go/pkg
 
 ENV GOPATH=/go
-
-ENV PATH=$GOPATH/bin:$PATH
 
 RUN mkdir -p $GOPATH/src/service \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/entities \
@@ -24,8 +22,16 @@ WORKDIR $GOPATH/src/service
 
 RUN go build -o $GOPATH/bin/service .
 
-RUN rm -rf /GOPATH/src && rm -rf /GOPATH/pkg
+FROM alpine:latest
 
-CMD ["/go/bin/service"]
+RUN apk --no-cache add ca-certificates
+
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY --from=builder /go/bin/service .
+
+CMD ["./service"]
 
 EXPOSE $SERVICE_PORT
