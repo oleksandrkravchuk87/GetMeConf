@@ -1,4 +1,5 @@
-package entities
+// Package entitie contains database entities
+package entitie
 
 //Mongodb is an random config example
 type Mongodb struct {

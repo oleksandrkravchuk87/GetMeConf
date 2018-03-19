@@ -1,3 +1,4 @@
+// Package repository contains repository interfaces as well as their implementations for given databases
 package repository
 
 import (
@@ -13,7 +14,7 @@ import (
 
 	"net/url"
 
-	"github.com/YAWAL/GetMeConf/entities"
+	"github.com/YAWAL/GetMeConf/entitie"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"gopkg.in/gormigrate.v1"
@@ -209,8 +210,8 @@ func gormMigrate(db *gorm.DB) error {
 }
 
 //Find returns a config record from database using the unique name
-func (r *MongoDBConfigRepoImpl) Find(configName string) (*entities.Mongodb, error) {
-	result := entities.Mongodb{}
+func (r *MongoDBConfigRepoImpl) Find(configName string) (*entitie.Mongodb, error) {
+	result := entitie.Mongodb{}
 	err := r.DB.Where("domain = ?", configName).Find(&result).Error
 	if err != nil {
 		return nil, err
@@ -219,8 +220,8 @@ func (r *MongoDBConfigRepoImpl) Find(configName string) (*entities.Mongodb, erro
 }
 
 //FindAll returns all config record of one type from database
-func (r *MongoDBConfigRepoImpl) FindAll() ([]entities.Mongodb, error) {
-	var confSlice []entities.Mongodb
+func (r *MongoDBConfigRepoImpl) FindAll() ([]entitie.Mongodb, error) {
+	var confSlice []entitie.Mongodb
 	err := r.DB.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -229,7 +230,7 @@ func (r *MongoDBConfigRepoImpl) FindAll() ([]entities.Mongodb, error) {
 }
 
 //Save saves new config record to the database
-func (r *MongoDBConfigRepoImpl) Save(config *entities.Mongodb) (string, error) {
+func (r *MongoDBConfigRepoImpl) Save(config *entitie.Mongodb) (string, error) {
 	err := r.DB.Create(config).Error
 	if err != nil {
 		log.Printf("error during saving to database: %v", err)
@@ -240,7 +241,7 @@ func (r *MongoDBConfigRepoImpl) Save(config *entities.Mongodb) (string, error) {
 
 //Delete removes config record from database
 func (r *MongoDBConfigRepoImpl) Delete(configName string) (string, error) {
-	rowsAffected := r.DB.Delete(entities.Mongodb{}, "domain = ?", configName).RowsAffected
+	rowsAffected := r.DB.Delete(entitie.Mongodb{}, "domain = ?", configName).RowsAffected
 	if rowsAffected < 1 {
 		return "", errors.New("could not delete from database")
 	}
@@ -248,8 +249,8 @@ func (r *MongoDBConfigRepoImpl) Delete(configName string) (string, error) {
 }
 
 //Update updates a record in database, rewriting the fields if string fields are not empty
-func (r *MongoDBConfigRepoImpl) Update(newConfig *entities.Mongodb) (string, error) {
-	var persistedConfig entities.Mongodb
+func (r *MongoDBConfigRepoImpl) Update(newConfig *entitie.Mongodb) (string, error) {
+	var persistedConfig entitie.Mongodb
 	err := r.DB.Where("domain = ?", newConfig.Domain).Find(&persistedConfig).Error
 	if err != nil {
 		return "", err
@@ -266,8 +267,8 @@ func (r *MongoDBConfigRepoImpl) Update(newConfig *entities.Mongodb) (string, err
 }
 
 //Find returns a config record from database using the unique name
-func (r *TempConfigRepoImpl) Find(configName string) (*entities.Tempconfig, error) {
-	result := entities.Tempconfig{}
+func (r *TempConfigRepoImpl) Find(configName string) (*entitie.Tempconfig, error) {
+	result := entitie.Tempconfig{}
 	err := r.DB.Where("rest_api_root = ?", configName).Find(&result).Error
 	if err != nil {
 		return nil, err
@@ -276,8 +277,8 @@ func (r *TempConfigRepoImpl) Find(configName string) (*entities.Tempconfig, erro
 }
 
 //FindAll returns all config record of one type from database
-func (r *TempConfigRepoImpl) FindAll() ([]entities.Tempconfig, error) {
-	var confSlice []entities.Tempconfig
+func (r *TempConfigRepoImpl) FindAll() ([]entitie.Tempconfig, error) {
+	var confSlice []entitie.Tempconfig
 	err := r.DB.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -286,7 +287,7 @@ func (r *TempConfigRepoImpl) FindAll() ([]entities.Tempconfig, error) {
 }
 
 //Save saves new config record to the database
-func (r *TempConfigRepoImpl) Save(config *entities.Tempconfig) (string, error) {
+func (r *TempConfigRepoImpl) Save(config *entitie.Tempconfig) (string, error) {
 	err := r.DB.Create(config).Error
 	if err != nil {
 		log.Printf("error during saving to database: %v", err)
@@ -297,7 +298,7 @@ func (r *TempConfigRepoImpl) Save(config *entities.Tempconfig) (string, error) {
 
 //Delete removes config record from database
 func (r *TempConfigRepoImpl) Delete(configName string) (string, error) {
-	rowsAffected := r.DB.Delete(entities.Tempconfig{}, "rest_api_root = ?", configName).RowsAffected
+	rowsAffected := r.DB.Delete(entitie.Tempconfig{}, "rest_api_root = ?", configName).RowsAffected
 	if rowsAffected < 1 {
 		return "", errors.New("could not delete from database")
 	}
@@ -305,8 +306,8 @@ func (r *TempConfigRepoImpl) Delete(configName string) (string, error) {
 }
 
 //Update updates a record in database, rewriting the fields if string fields are not empty
-func (r *TempConfigRepoImpl) Update(newConfig *entities.Tempconfig) (string, error) {
-	var persistedConfig entities.Tempconfig
+func (r *TempConfigRepoImpl) Update(newConfig *entitie.Tempconfig) (string, error) {
+	var persistedConfig entitie.Tempconfig
 	err := r.DB.Where("rest_api_root = ?", newConfig.RestApiRoot).Find(&persistedConfig).Error
 	if err != nil {
 		return "", err
@@ -323,8 +324,8 @@ func (r *TempConfigRepoImpl) Update(newConfig *entities.Tempconfig) (string, err
 }
 
 //Find returns a config record from database using the unique name
-func (r *TsConfigRepoImpl) Find(configName string) (*entities.Tsconfig, error) {
-	result := entities.Tsconfig{}
+func (r *TsConfigRepoImpl) Find(configName string) (*entitie.Tsconfig, error) {
+	result := entitie.Tsconfig{}
 	err := r.DB.Where("module = ?", configName).Find(&result).Error
 	if err != nil {
 		return nil, err
@@ -333,8 +334,8 @@ func (r *TsConfigRepoImpl) Find(configName string) (*entities.Tsconfig, error) {
 }
 
 //FindAll returns all config record of one type from database
-func (r *TsConfigRepoImpl) FindAll() ([]entities.Tsconfig, error) {
-	var confSlice []entities.Tsconfig
+func (r *TsConfigRepoImpl) FindAll() ([]entitie.Tsconfig, error) {
+	var confSlice []entitie.Tsconfig
 	err := r.DB.Find(&confSlice).Error
 	if err != nil {
 		return nil, err
@@ -343,7 +344,7 @@ func (r *TsConfigRepoImpl) FindAll() ([]entities.Tsconfig, error) {
 }
 
 //Save saves new config record to the database
-func (r *TsConfigRepoImpl) Save(config *entities.Tsconfig) (string, error) {
+func (r *TsConfigRepoImpl) Save(config *entitie.Tsconfig) (string, error) {
 	err := r.DB.Create(config).Error
 	if err != nil {
 		log.Printf("error during saving to database: %v", err)
@@ -354,7 +355,7 @@ func (r *TsConfigRepoImpl) Save(config *entities.Tsconfig) (string, error) {
 
 //Delete removes config record from database
 func (r *TsConfigRepoImpl) Delete(configName string) (string, error) {
-	rowsAffected := r.DB.Delete(entities.Tsconfig{}, "module = ?", configName).RowsAffected
+	rowsAffected := r.DB.Delete(entitie.Tsconfig{}, "module = ?", configName).RowsAffected
 	if rowsAffected < 1 {
 		return "", errors.New("could not delete from database")
 	}
@@ -362,8 +363,8 @@ func (r *TsConfigRepoImpl) Delete(configName string) (string, error) {
 }
 
 //Update updates a record in database, rewriting the fields if string fields are not empty
-func (r *TsConfigRepoImpl) Update(newConfig *entities.Tsconfig) (string, error) {
-	var persistedConfig entities.Tsconfig
+func (r *TsConfigRepoImpl) Update(newConfig *entitie.Tsconfig) (string, error) {
+	var persistedConfig entitie.Tsconfig
 	err := r.DB.Where("module = ?", newConfig.Module).Find(&persistedConfig).Error
 	if err != nil {
 		return "", err

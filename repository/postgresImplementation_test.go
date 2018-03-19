@@ -1,3 +1,4 @@
+// Package repository contains repository interfaces as well as their implementations for given databases
 package repository
 
 import (
@@ -8,7 +9,7 @@ import (
 
 	"testing"
 
-	"github.com/YAWAL/GetMeConf/entities"
+	"github.com/YAWAL/GetMeConf/entitie"
 
 	"github.com/jinzhu/gorm"
 
@@ -42,7 +43,7 @@ func formatRequest(s string) string {
 func TestFind(t *testing.T) {
 	m, db, _ := newDB()
 	mongoRepo := MongoDBConfigRepoImpl{DB: db}
-	mongodbConfig := entities.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
+	mongodbConfig := entitie.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
 	mongoRows := getMongoDBRows(mongodbConfig.Domain)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).WithArgs("testDomain").WillReturnRows(mongoRows)
 	returnedMongoConfigs, err := mongoRepo.Find("testDomain")
@@ -60,7 +61,7 @@ func TestFind(t *testing.T) {
 	}
 
 	tsRepo := TsConfigRepoImpl{DB: db}
-	tsConfig := entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfig := entitie.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
 	tsRows := getTsConfigRows(tsConfig.Module)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).WithArgs("testModule").WillReturnRows(tsRows)
 	returnedTsConfigs, err := tsRepo.Find("testModule")
@@ -79,7 +80,7 @@ func TestFind(t *testing.T) {
 	}
 
 	tempRepo := TempConfigRepoImpl{DB: db}
-	tempConfig := entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfig := entitie.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	tempRows := getTempConfigRows(tempConfig.RestApiRoot)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).WithArgs("testRestApiRoot").WillReturnRows(tempRows)
 	returnedTempConfigs, err := tempRepo.Find("testRestApiRoot")
@@ -102,9 +103,9 @@ func TestFind(t *testing.T) {
 func TestFindAll(t *testing.T) {
 	m, db, _ := newDB()
 	mongoRepo := MongoDBConfigRepoImpl{DB: db}
-	mongodbConfig := entities.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
+	mongodbConfig := entitie.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
 	mongoRows := getMongoDBRows(mongodbConfig.Domain)
-	expConfigs := []entities.Mongodb{mongodbConfig}
+	expConfigs := []entitie.Mongodb{mongodbConfig}
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\"")).WillReturnRows(mongoRows)
 	returnedMongoConfigs, err := mongoRepo.FindAll()
 	if err != nil {
@@ -120,9 +121,9 @@ func TestFindAll(t *testing.T) {
 	}
 
 	tsRepo := TsConfigRepoImpl{DB: db}
-	tsConfig := entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfig := entitie.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
 	tsRows := getTsConfigRows(tsConfig.Module)
-	expTsConfigs := []entities.Tsconfig{tsConfig}
+	expTsConfigs := []entitie.Tsconfig{tsConfig}
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\"")).WillReturnRows(tsRows)
 	returnedTsConfigs, err := tsRepo.FindAll()
 	if err != nil {
@@ -138,9 +139,9 @@ func TestFindAll(t *testing.T) {
 	}
 
 	tempRepo := TempConfigRepoImpl{DB: db}
-	tempConfig := entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfig := entitie.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	tempRows := getTempConfigRows(tempConfig.RestApiRoot)
-	expTempConfigs := []entities.Tempconfig{tempConfig}
+	expTempConfigs := []entitie.Tempconfig{tempConfig}
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\"")).WillReturnRows(tempRows)
 	returnedTempConfigs, err := tempRepo.FindAll()
 	if err != nil {
@@ -161,7 +162,7 @@ func TestFindAll(t *testing.T) {
 func TestSave(t *testing.T) {
 	m, db, _ := newDB()
 	mockRepo := MongoDBConfigRepoImpl{DB: db}
-	mongodbConfig := entities.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
+	mongodbConfig := entitie.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "testPort"}
 	m.ExpectExec(formatRequest("INSERT INTO \"mongodbs\" (\"domain\",\"mongodb\",\"host\",\"port\") VALUES ($1,$2,$3,$4) RETURNING \"mongodbs\".*")).
 		WithArgs("testDomain", true, "testHost", "testPort").
 		WillReturnResult(sqlmock.NewResult(0, 1))
@@ -171,7 +172,7 @@ func TestSave(t *testing.T) {
 	}
 	assert.Equal(t, "OK", result)
 
-	mongodbConfigErr := entities.Mongodb{Domain: "testDomainError", Mongodb: true, Host: "testHost", Port: "testPort"}
+	mongodbConfigErr := entitie.Mongodb{Domain: "testDomainError", Mongodb: true, Host: "testHost", Port: "testPort"}
 	expectedError := errors.New("db error")
 	m.ExpectExec(formatRequest("INSERT INTO \"mongodbs\" (\"domain\",\"mongodb\",\"host\",\"port\") VALUES ($1,$2,$3,$4) RETURNING \"mongodbs\".*")).
 		WithArgs("testDomainError", true, "testHost", "testPort").
@@ -182,7 +183,7 @@ func TestSave(t *testing.T) {
 	}
 
 	tsRepo := TsConfigRepoImpl{DB: db}
-	tsConfig := entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfig := entitie.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
 	m.ExpectExec(formatRequest("INSERT INTO \"tsconfigs\" (\"module\",\"target\",\"source_map\",\"excluding\") VALUES ($1,$2,$3,$4) RETURNING \"tsconfigs\".*")).
 		WithArgs("testModule", "testTarget", true, 1).
 		WillReturnResult(sqlmock.NewResult(0, 1))
@@ -192,7 +193,7 @@ func TestSave(t *testing.T) {
 	}
 	assert.Equal(t, "OK", result)
 
-	tsConfigErr := entities.Tsconfig{Module: "testModuleError", Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfigErr := entitie.Tsconfig{Module: "testModuleError", Target: "testTarget", SourceMap: true, Excluding: 1}
 	expectedError = errors.New("db error")
 	m.ExpectExec(formatRequest("INSERT INTO \"tsconfigs\" (\"module\",\"target\",\"source_map\",\"excluding\") VALUES ($1,$2,$3,$4) RETURNING \"tsconfigs\".*")).
 		WithArgs("testModuleError", "testTarget", true, 1).
@@ -203,7 +204,7 @@ func TestSave(t *testing.T) {
 	}
 
 	tempRepo := TempConfigRepoImpl{DB: db}
-	tempConfig := entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfig := entitie.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	m.ExpectExec(formatRequest("INSERT INTO \"tempconfigs\" (\"rest_api_root\",\"host\",\"port\",\"remoting\",\"legasy_explorer\") VALUES ($1,$2,$3,$4,$5) RETURNING \"tempconfigs\".*")).
 		WithArgs("testApiRoot", "testHost", "testPort", "testRemoting", true).
 		WillReturnResult(sqlmock.NewResult(0, 1))
@@ -213,7 +214,7 @@ func TestSave(t *testing.T) {
 	}
 	assert.Equal(t, "OK", result)
 
-	tempConfigErr := entities.Tempconfig{RestApiRoot: "testApiRootError", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfigErr := entitie.Tempconfig{RestApiRoot: "testApiRootError", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	expectedError = errors.New("db error")
 	m.ExpectExec(formatRequest("INSERT INTO \"tempconfigs\" (\"rest_api_root\",\"host\",\"port\",\"remoting\",\"legasy_explorer\") VALUES ($1,$2,$3,$4,$5) RETURNING \"tempconfigs\".*")).
 		WithArgs("testApiRootError", "testHost", "testPort", "testRemoting", true).
@@ -290,7 +291,7 @@ func TestDelete(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	m, db, _ := newDB()
 	mockRepo := MongoDBConfigRepoImpl{DB: db}
-	config := entities.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "8080"}
+	config := entitie.Mongodb{Domain: "testDomain", Mongodb: true, Host: "testHost", Port: "8080"}
 	rows := getMongoDBRows(config.Domain)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
 		WithArgs("testDomain").
@@ -304,7 +305,7 @@ func TestUpdate(t *testing.T) {
 	}
 	assert.Equal(t, "OK", result)
 
-	configErrOne := entities.Mongodb{Domain: "errOneConfig", Mongodb: true, Host: "testHost", Port: "8080"}
+	configErrOne := entitie.Mongodb{Domain: "errOneConfig", Mongodb: true, Host: "testHost", Port: "8080"}
 	rows = getMongoDBRows(configErrOne.Domain)
 	expectedErrorOne := errors.New("record not found")
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
@@ -316,7 +317,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	expectedErrorTwo := errors.New("db error")
-	configErrTwo := entities.Mongodb{Domain: "errTwoConfig", Mongodb: true, Host: "testHost", Port: "8080"}
+	configErrTwo := entitie.Mongodb{Domain: "errTwoConfig", Mongodb: true, Host: "testHost", Port: "8080"}
 	rows = getMongoDBRows(configErrTwo.Domain)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
 		WithArgs("errTwoConfig").
@@ -330,7 +331,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	expectedErrorThree := errors.New("fields are empty")
-	configErrThree := entities.Mongodb{Domain: "errThreeConfig", Mongodb: true, Host: "", Port: ""}
+	configErrThree := entitie.Mongodb{Domain: "errThreeConfig", Mongodb: true, Host: "", Port: ""}
 	rows = getMongoDBRows(configErrThree.Domain)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"mongodbs\" WHERE (domain = $1)")).
 		WithArgs("errThreeConfig").
@@ -346,7 +347,7 @@ func TestUpdate(t *testing.T) {
 	m, db, _ = newDB()
 
 	tsRepo := TsConfigRepoImpl{DB: db}
-	tsConfig := entities.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfig := entitie.Tsconfig{Module: "testModule", Target: "testTarget", SourceMap: true, Excluding: 1}
 	tsRows := getTsConfigRows(tsConfig.Module)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
 		WithArgs("testModule").
@@ -360,7 +361,7 @@ func TestUpdate(t *testing.T) {
 	}
 	assert.Equal(t, "OK", tsResult)
 
-	tsConfigErrOne := entities.Tsconfig{Module: "errOneConfig", Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfigErrOne := entitie.Tsconfig{Module: "errOneConfig", Target: "testTarget", SourceMap: true, Excluding: 1}
 	expectedTsErrorOne := errors.New("record not found")
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
 		WithArgs("errOneConfig").
@@ -371,7 +372,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	expectedTsErrorTwo := errors.New("db error")
-	tsConfigErrTwo := entities.Tsconfig{Module: "errTwoConfig", Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfigErrTwo := entitie.Tsconfig{Module: "errTwoConfig", Target: "testTarget", SourceMap: true, Excluding: 1}
 	tsRows = getTsConfigRows(tsConfigErrTwo.Module)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
 		WithArgs("errTwoConfig").
@@ -385,7 +386,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	expectedTsErrorThree := errors.New("fields are empty")
-	tsConfigErrThree := entities.Tsconfig{Module: "errThreeConfig", Target: "", SourceMap: true, Excluding: 1}
+	tsConfigErrThree := entitie.Tsconfig{Module: "errThreeConfig", Target: "", SourceMap: true, Excluding: 1}
 	tsRows = getTsConfigRows(tsConfigErrThree.Module)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tsconfigs\" WHERE (module = $1)")).
 		WithArgs("errThreeConfig").
@@ -401,7 +402,7 @@ func TestUpdate(t *testing.T) {
 	m, db, _ = newDB()
 
 	tempRepo := TempConfigRepoImpl{DB: db}
-	tempConfig := entities.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfig := entitie.Tempconfig{RestApiRoot: "testApiRoot", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	tempRows := getTempConfigRows(tempConfig.RestApiRoot)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
 		WithArgs("testApiRoot").
@@ -415,7 +416,7 @@ func TestUpdate(t *testing.T) {
 	}
 	assert.Equal(t, "OK", tempResult)
 
-	tempConfigErrOne := entities.Tempconfig{RestApiRoot: "errOneConfig", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfigErrOne := entitie.Tempconfig{RestApiRoot: "errOneConfig", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	expectedTempErrorOne := errors.New("record not found")
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
 		WithArgs("errOneConfig").
@@ -426,7 +427,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	expectedTempErrorTwo := errors.New("db error")
-	tempConfigErrTwo := entities.Tempconfig{RestApiRoot: "errTwoConfig", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfigErrTwo := entitie.Tempconfig{RestApiRoot: "errTwoConfig", Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	tempRows = getTempConfigRows(tempConfigErrTwo.RestApiRoot)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
 		WithArgs("errTwoConfig").
@@ -440,7 +441,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	expectedTempErrorThree := errors.New("fields are empty")
-	tempConfigErrThree := entities.Tempconfig{RestApiRoot: "errThreeConfig", Host: "", Port: "", Remoting: "", LegasyExplorer: true}
+	tempConfigErrThree := entitie.Tempconfig{RestApiRoot: "errThreeConfig", Host: "", Port: "", Remoting: "", LegasyExplorer: true}
 	tempRows = getTempConfigRows(tempConfigErrThree.RestApiRoot)
 	m.ExpectQuery(formatRequest("SELECT * FROM \"tempconfigs\" WHERE (rest_api_root = $1)")).
 		WithArgs("errThreeConfig").
@@ -457,7 +458,7 @@ func TestUpdate(t *testing.T) {
 func getMongoDBRows(configID string) *sqlmock.Rows {
 	var fieldNames = []string{"domain", "mongodb", "host", "port"}
 	rows := sqlmock.NewRows(fieldNames)
-	mongodbConfig := entities.Mongodb{Domain: configID, Mongodb: true, Host: "testHost", Port: "testPort"}
+	mongodbConfig := entitie.Mongodb{Domain: configID, Mongodb: true, Host: "testHost", Port: "testPort"}
 	rows = rows.AddRow(mongodbConfig.Domain, mongodbConfig.Mongodb, mongodbConfig.Host, mongodbConfig.Port)
 	return rows
 }
@@ -465,7 +466,7 @@ func getMongoDBRows(configID string) *sqlmock.Rows {
 func getTsConfigRows(configID string) *sqlmock.Rows {
 	var fieldNames = []string{"module", "target", "source_map", "excluding"}
 	rows := sqlmock.NewRows(fieldNames)
-	tsConfig := entities.Tsconfig{Module: configID, Target: "testTarget", SourceMap: true, Excluding: 1}
+	tsConfig := entitie.Tsconfig{Module: configID, Target: "testTarget", SourceMap: true, Excluding: 1}
 	rows = rows.AddRow(tsConfig.Module, tsConfig.Target, tsConfig.SourceMap, tsConfig.Excluding)
 	return rows
 }
@@ -473,7 +474,7 @@ func getTsConfigRows(configID string) *sqlmock.Rows {
 func getTempConfigRows(configID string) *sqlmock.Rows {
 	var fieldNames = []string{"rest_api_root", "host", "port", "remoting", "legasy_explorer"}
 	rows := sqlmock.NewRows(fieldNames)
-	tempConfig := entities.Tempconfig{RestApiRoot: configID, Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
+	tempConfig := entitie.Tempconfig{RestApiRoot: configID, Host: "testHost", Port: "testPort", Remoting: "testRemoting", LegasyExplorer: true}
 	rows = rows.AddRow(tempConfig.RestApiRoot, tempConfig.Host, tempConfig.Port, tempConfig.Remoting, tempConfig.LegasyExplorer)
 	return rows
 }

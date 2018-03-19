@@ -7,11 +7,11 @@ RUN mkdir -p /go/src \
 ENV GOPATH=/go
 
 RUN mkdir -p $GOPATH/src/service \
-&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/entities \
+&& mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/entitie \
 && mkdir -p $GOPATH/src/github.com/YAWAL/GetMeConf/repository
 
 ADD ./service $GOPATH/src/service
-ADD entities $GOPATH/src/github.com/YAWAL/GetMeConf/entities
+ADD entitie $GOPATH/src/github.com/YAWAL/GetMeConf/entitie
 ADD ./repository $GOPATH/src/github.com/YAWAL/GetMeConf/repository
 
 ADD ./vendor $GOPATH/src/vendor
