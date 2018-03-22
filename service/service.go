@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	defaultPort                 = "5000"
+	defaultPort                 = "3000"
 	defaultCacheExpirationTime  = 5
 	defaultCacheCleanupInterval = 10
 )
@@ -262,7 +262,7 @@ func (s *configServer) UpdateConfig(ctx context.Context, config *pb.Config) (*pb
 
 func main() {
 
-	port := os.Getenv("SERVICE_PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
 		log.Println("error during reading env. variable, default value is used")
 		port = defaultPort
