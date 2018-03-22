@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	defaultPort                 = "3000"
+	defaultPort                 = "5000"
 	defaultCacheExpirationTime  = 5
 	defaultCacheCleanupInterval = 10
 )
